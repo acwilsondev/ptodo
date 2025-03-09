@@ -103,20 +103,64 @@ ptodo/
 
 ### Testing
 
-We use pytest for testing. All code contributions should include tests:
+We use pytest for testing. All code contributions should include tests.
+
+#### Requirements
+
+Before running tests, make sure you have the following installed:
+- Python 3.6 or higher
+- pytest
+- pytest-cov (for code coverage reports)
+
+These are automatically installed when you set up the development environment as described above.
+
+#### Running Tests
+
+From the project root directory:
 
 ```bash
 # Run all tests
 pytest
 
+# Run tests with verbose output
+pytest -v
+
 # Run with coverage report
 pytest --cov=ptodo
 
 # Run a specific test file
-pytest tests/test_specific_file.py
+pytest tests/test_serda.py
+
+# Generate HTML coverage report
+pytest --cov=ptodo --cov-report=html
 ```
 
+The HTML coverage report will be generated in the `htmlcov` directory.
+
+#### Test Structure
+
+- `tests/test_serda.py`: Tests for the serialization/deserialization functionality
+- `tests/test_app.py`: Tests for the command-line application functionality
+- `tests/conftest.py`: Common fixtures and test configurations
+
 Tests should be placed in the `tests/` directory and should follow the same structure as the source code.
+
+#### Adding New Tests
+
+When adding new tests:
+1. Create a file named `test_*.py` in the tests directory
+2. Import the modules you want to test
+3. Write test functions prefixed with `test_`
+
+Example:
+```python
+def test_something():
+    assert True
+```
+
+#### Continuous Integration
+
+These tests are designed to be run in a CI/CD pipeline. Make sure all tests pass before submitting pull requests.
 
 ### Code Style
 
