@@ -123,7 +123,8 @@ def cmd_list(args: argparse.Namespace) -> None:
         creation_date_str = f"{task.creation_date} " if task.creation_date else ""
 
         print(
-            f"{i:3d}. {completion_str}{priority_str}{completion_date_str}{creation_date_str}{task.description}"
+            f"{i:3d}. {completion_str}{priority_str}{completion_date_str}"
+            f"{creation_date_str}{task.description}"
         )
 
 
@@ -204,7 +205,7 @@ def cmd_archive(_: argparse.Namespace) -> None:
     Move completed tasks to the done.txt file.
 
     Args:
-        _: (Unused) Command-line arguments 
+        _: (Unused) Command-line arguments
     """
     todo_file = get_todo_file_path()
     done_file = get_done_file_path()
@@ -235,7 +236,7 @@ def cmd_projects(_: argparse.Namespace) -> None:
     List all projects in the todo.txt file.
 
     Args:
-        _: (Unused) Command-line arguments 
+        _: (Unused) Command-line arguments
     """
     todo_file = get_todo_file_path()
     tasks = read_tasks(todo_file)
@@ -260,7 +261,7 @@ def cmd_contexts(_: argparse.Namespace) -> None:
     List all contexts in the todo.txt file.
 
     Args:
-        _: (Unused) Command-line arguments 
+        _: (Unused) Command-line arguments
     """
     todo_file = get_todo_file_path()
     tasks = read_tasks(todo_file)
@@ -358,7 +359,6 @@ Examples:
         epilog="""
 Examples:
   ptodo done 1                  # Mark task #1 as complete
-  
 Note: Task numbers are shown when listing tasks with 'ptodo list'
 """,
     )
@@ -375,7 +375,6 @@ Note: Task numbers are shown when listing tasks with 'ptodo list'
 Examples:
   ptodo pri 2 A                 # Set task #2 to priority A
   ptodo pri 3 C                 # Set task #3 to priority C
-  
 Note: Priorities range from A (highest) to Z (lowest)
 """,
     )
@@ -383,40 +382,37 @@ Note: Priorities range from A (highest) to Z (lowest)
     pri_parser.add_argument("priority", help="Priority (A-Z)")
 
     # archive command
-    archive_parser = subparsers.add_parser(
+    subparsers.add_parser(
         "archive",
         help="Move completed tasks to done.txt",
         description="Move all completed tasks from todo.txt to done.txt",
         epilog="""
 Examples:
   ptodo archive                 # Move all completed tasks to done.txt
-  
 Note: This is useful for cleaning up your todo.txt file after completing tasks
 """,
     )
 
     # projects command
-    projects_parser = subparsers.add_parser(
+    subparsers.add_parser(
         "projects",
         help="List all projects",
         description="List all projects (+project) found in your tasks",
         epilog="""
 Examples:
   ptodo projects                # List all projects in todo.txt
-  
 Note: Projects in todo.txt format are words prefixed with '+' like +home
 """,
     )
 
     # contexts command
-    contexts_parser = subparsers.add_parser(
+    subparsers.add_parser(
         "contexts",
         help="List all contexts",
         description="List all contexts (@context) found in your tasks",
         epilog="""
 Examples:
   ptodo contexts                # List all contexts in todo.txt
-  
 Note: Contexts in todo.txt format are words prefixed with '@' like @phone
 """,
     )

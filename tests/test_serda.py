@@ -5,8 +5,8 @@ from datetime import date
 
 # Add the parent directory to the path so we can import the ptodo package
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from ptodo.serda import Task, parse_task, serialize_task
+# Import our modules after path modification
+from ptodo.serda import Task, parse_task, serialize_task  # noqa: E402
 
 
 class TestTask(unittest.TestCase):
