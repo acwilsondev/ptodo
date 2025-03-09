@@ -46,10 +46,10 @@ def sample_tasks():
         Task(description="Write report", projects={"work"}, contexts={"office"}),
         Task(description="Go running", contexts={"health"}, completed=True),
         Task(
-            description="Send email", 
-            priority="B", 
-            projects={"work", "communication"}, 
-            contexts={"office"}
+            description="Send email",
+            priority="B",
+            projects={"work", "communication"},
+            contexts={"office"},
         ),
     ]
 
@@ -78,16 +78,16 @@ def populated_done_file(temp_done_file, sample_tasks):
 def mock_user_input(monkeypatch):
     """Mock user input for testing interactive features."""
     inputs = []
-    
+
     def mock_input(prompt=""):
         if not inputs:
             return ""
         return inputs.pop(0)
-    
+
     def set_inputs(new_inputs):
         nonlocal inputs
         inputs = new_inputs.copy()
-    
+
     monkeypatch.setattr("builtins.input", mock_input)
     return set_inputs
 
@@ -96,4 +96,3 @@ def mock_user_input(monkeypatch):
 def pytest_configure(config):
     config.option.verbose = 2
     config.option.showlocals = True
-

@@ -4,7 +4,7 @@ import unittest
 from datetime import date
 
 # Add the parent directory to the path so we can import the ptodo package
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from ptodo.serda import Task, parse_task, serialize_task
 
@@ -19,9 +19,9 @@ class TestTask(unittest.TestCase):
             completed=False,
             completion_date=None,
             projects={"grocery"},
-            contexts={"errands"}
+            contexts={"errands"},
         )
-        
+
         self.assertEqual(task.description, "Buy milk")
         self.assertEqual(task.priority, "A")
         self.assertEqual(task.creation_date, date(2023, 1, 1))
@@ -33,7 +33,7 @@ class TestTask(unittest.TestCase):
     def test_default_values(self):
         """Test that default values are set correctly."""
         task = Task(description="Simple task")
-        
+
         self.assertEqual(task.description, "Simple task")
         self.assertIsNone(task.priority)
         self.assertIsNone(task.creation_date)
@@ -46,7 +46,7 @@ class TestTask(unittest.TestCase):
         """Test marking a task as complete."""
         task = Task(description="Write tests")
         self.assertFalse(task.completed)
-        
+
         # Mark as complete
         task.complete()
         self.assertTrue(task.completed)
@@ -69,10 +69,7 @@ class TestSerialization(unittest.TestCase):
 
     def test_serialize_task_with_dates(self):
         """Test serialization of a task with creation date."""
-        task = Task(
-            description="Task with date",
-            creation_date=date(2023, 1, 1)
-        )
+        task = Task(description="Task with date", creation_date=date(2023, 1, 1))
         serialized = serialize_task(task)
         self.assertEqual(serialized, "2023-01-01 Task with date")
 
@@ -81,7 +78,7 @@ class TestSerialization(unittest.TestCase):
         task = Task(
             description="Completed task",
             completed=True,
-            completion_date=date(2023, 1, 15)
+            completion_date=date(2023, 1, 15),
         )
         serialized = serialize_task(task)
         self.assertEqual(serialized, "x 2023-01-15 Completed task")
@@ -91,10 +88,12 @@ class TestSerialization(unittest.TestCase):
         task = Task(
             description="Task with metadata",
             projects={"work", "report"},
-            contexts={"office", "computer"}
+            contexts={"office", "computer"},
         )
         serialized = serialize_task(task)
-        self.assertEqual(serialized, "Task with metadata +report +work @computer @office")
+        self.assertEqual(
+            serialized, "Task with metadata +report +work @computer @office"
+        )
 
     def test_serialize_complex_task(self):
         """Test serialization of a complex task with all attributes."""
@@ -105,10 +104,12 @@ class TestSerialization(unittest.TestCase):
             completed=True,
             completion_date=date(2023, 1, 15),
             projects={"ptodo"},
-            contexts={"coding"}
+            contexts={"coding"},
         )
         serialized = serialize_task(task)
-        self.assertEqual(serialized, "x (B) 2023-01-15 2023-01-01 Complex task +ptodo @coding")
+        self.assertEqual(
+            serialized, "x (B) 2023-01-15 2023-01-01 Complex task +ptodo @coding"
+        )
 
 
 class TestParsing(unittest.TestCase):
@@ -116,7 +117,7 @@ class TestParsing(unittest.TestCase):
         """Test parsing of a simple task."""
         task_str = "Simple task"
         task = parse_task(task_str)
-        
+
         self.assertEqual(task.description, "Simple task")
         self.assertIsNone(task.priority)
         self.assertIsNone(task.creation_date)
@@ -129,7 +130,7 @@ class TestParsing(unittest.TestCase):
         """Test parsing of a task with priority."""
         task_str = "(A) Task with priority"
         task = parse_task(task_str)
-        
+
         self.assertEqual(task.description, "Task with priority")
         self.assertEqual(task.priority, "A")
 
@@ -137,7 +138,7 @@ class TestParsing(unittest.TestCase):
         """Test parsing of a task with creation date."""
         task_str = "2023-01-01 Task with date"
         task = parse_task(task_str)
-        
+
         self.assertEqual(task.description, "Task with date")
         self.assertEqual(task.creation_date, date(2023, 1, 1))
 
@@ -145,7 +146,7 @@ class TestParsing(unittest.TestCase):
         """Test parsing of a completed task."""
         task_str = "x 2023-01-15 Completed task"
         task = parse_task(task_str)
-        
+
         self.assertEqual(task.description, "Completed task")
         self.assertTrue(task.completed)
         self.assertEqual(task.completion_date, date(2023, 1, 15))
@@ -154,7 +155,7 @@ class TestParsing(unittest.TestCase):
         """Test parsing of a completed task with creation date."""
         task_str = "x 2023-01-15 2023-01-01 Completed task with creation date"
         task = parse_task(task_str)
-        
+
         self.assertEqual(task.description, "Completed task with creation date")
         self.assertTrue(task.completed)
         self.assertEqual(task.completion_date, date(2023, 1, 15))
@@ -164,7 +165,7 @@ class TestParsing(unittest.TestCase):
         """Test parsing of a task with projects and contexts."""
         task_str = "Task with metadata +work +report @office @computer"
         task = parse_task(task_str)
-        
+
         self.assertEqual(task.description, "Task with metadata")
         self.assertEqual(task.projects, {"work", "report"})
         self.assertEqual(task.contexts, {"office", "computer"})
@@ -173,7 +174,7 @@ class TestParsing(unittest.TestCase):
         """Test parsing of a complex task with all attributes."""
         task_str = "x (B) 2023-01-15 2023-01-01 Complex task +ptodo @coding"
         task = parse_task(task_str)
-        
+
         self.assertEqual(task.description, "Complex task")
         self.assertEqual(task.priority, "B")
         self.assertEqual(task.creation_date, date(2023, 1, 1))
@@ -185,4 +186,3 @@ class TestParsing(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

@@ -23,6 +23,8 @@ Thank you for your interest in contributing to ptodo! This document provides gui
     - [Issues](#issues)
     - [Pull Requests](#pull-requests)
   - [Release Process](#release-process)
+  - [Using the Makefile](#using-the-makefile)
+    - [Available Make Commands](#available-make-commands)
   - [Community](#community)
 
 ## Code of Conduct
@@ -59,15 +61,17 @@ By participating in this project, you are expected to uphold our Code of Conduct
 4. **Install development dependencies**
 
    ```bash
+   # Using the Makefile (recommended)
+   make setup
+
+   # Or manually:
    pip install -e ".[dev]"
-   # If the above doesn't work, try:
-   pip install -e .
-   pip install pytest pytest-cov flake8 mypy
+   pip install -e ".[test]"
    ```
 
 ### Project Structure
 
-```
+```bash
 ptodo/
 ├── ptodo/            # Source code
 │   ├── __init__.py
@@ -78,6 +82,7 @@ ptodo/
 ├── setup.py          # Package setup script
 ├── setup.cfg         # Configuration for tools
 ├── pytest.ini        # Pytest configuration
+├── Makefile          # Build automation
 ├── README.md         # Project documentation
 └── CONTRIBUTING.md   # This file
 ```
@@ -125,17 +130,17 @@ These are automatically installed when you set up the development environment as
 From the project root directory:
 
 ```bash
-# Run all tests
-pytest
+# Run all tests using the Makefile (recommended)
+make test
 
-# Run tests with verbose output
-pytest -v
+# Run tests with coverage report
+make coverage
 
-# Run with coverage report
-pytest --cov=ptodo
-
-# Run a specific test file
+# Run specific tests directly
 pytest tests/test_serda.py
+
+# Run with verbose output
+pytest -v
 
 # Generate HTML coverage report
 pytest --cov=ptodo --cov-report=html
@@ -180,13 +185,16 @@ We follow PEP 8 guidelines for Python code. Some specific points:
 - Maximum line length is 88 characters
 - Include docstrings for all public functions, classes, and modules
 
-You can check your code style with:
+You can check and format your code style with:
 
 ```bash
-# Check code style with flake8
-flake8 ptodo tests
+# Check code style (flake8, isort, black)
+make lint
 
-# Type checking with mypy
+# Auto-format code using black and isort
+make format
+
+# Type checking with mypy (if needed)
 mypy ptodo
 ```
 
@@ -239,6 +247,33 @@ The maintainers will handle the release process, which includes:
 1. Versioning (following [Semantic Versioning](https://semver.org/))
 2. Creating release notes
 3. Publishing to PyPI
+
+## Using the Makefile
+
+The project includes a Makefile to simplify common development tasks. Using the Makefile ensures consistency and reduces the chance of errors when running development commands.
+
+To see all available commands:
+
+```bash
+make help
+```
+
+### Available Make Commands
+
+| Command | Description |
+|---------|-------------|
+| `make setup` | Install development dependencies |
+| `make test` | Run tests with pytest |
+| `make coverage` | Run tests with coverage report |
+| `make format` | Format code using black and isort |
+| `make build` | Build the package |
+| `make install` | Install the package |
+| `make uninstall` | Uninstall the package |
+| `make lint` | Run linting checks (flake8, isort, black) |
+| `make clean` | Clean up build artifacts |
+| `make help` | Show help message with all available commands |
+
+Using these Makefile commands instead of direct tool invocation ensures consistent behavior across different development environments.
 
 ## Community
 
