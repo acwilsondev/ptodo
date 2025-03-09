@@ -4,7 +4,6 @@ import os
 import sys
 from datetime import date
 from pathlib import Path
-from typing import List, Optional, Set, TextIO
 
 from .serda import Task, parse_task, serialize_task
 
@@ -44,7 +43,7 @@ def get_done_file_path() -> Path:
     return Path.cwd() / DEFAULT_DONE_FILENAME
 
 
-def read_tasks(file_path: Path) -> List[Task]:
+def read_tasks(file_path: Path) -> list[Task]:
     """
     Read tasks from a file.
 
@@ -57,7 +56,7 @@ def read_tasks(file_path: Path) -> List[Task]:
     tasks = []
 
     try:
-        with open(file_path, "r") as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if line:
@@ -76,7 +75,7 @@ def read_tasks(file_path: Path) -> List[Task]:
     return tasks
 
 
-def write_tasks(tasks: List[Task], file_path: Path) -> None:
+def write_tasks(tasks: list[Task], file_path: Path) -> None:
     """
     Write tasks to a file.
 
@@ -84,7 +83,7 @@ def write_tasks(tasks: List[Task], file_path: Path) -> None:
         tasks: List of Task objects
         file_path: Path to the output file
     """
-    with open(file_path, "w") as f:
+    with open(file_path, "w", encoding="utf-8") as f:
         for task in tasks:
             f.write(serialize_task(task) + "\n")
 
@@ -200,12 +199,12 @@ def cmd_pri(args: argparse.Namespace) -> None:
         print(f"Error: Task number {args.task_number} out of range (1-{len(tasks)}).")
 
 
-def cmd_archive(args: argparse.Namespace) -> None:
+def cmd_archive(_: argparse.Namespace) -> None:
     """
     Move completed tasks to the done.txt file.
 
     Args:
-        args: Command-line arguments
+        _: (Unused) Command-line arguments 
     """
     todo_file = get_todo_file_path()
     done_file = get_done_file_path()
@@ -231,18 +230,18 @@ def cmd_archive(args: argparse.Namespace) -> None:
     print(f"Archived {len(completed_tasks)} completed task(s).")
 
 
-def cmd_projects(args: argparse.Namespace) -> None:
+def cmd_projects(_: argparse.Namespace) -> None:
     """
     List all projects in the todo.txt file.
 
     Args:
-        args: Command-line arguments
+        _: (Unused) Command-line arguments 
     """
     todo_file = get_todo_file_path()
     tasks = read_tasks(todo_file)
 
     # Get all projects
-    all_projects: Set[str] = set()
+    all_projects: set[str] = set()
     for task in tasks:
         all_projects.update(task.projects)
 
@@ -256,18 +255,18 @@ def cmd_projects(args: argparse.Namespace) -> None:
         print(f"  {project}")
 
 
-def cmd_contexts(args: argparse.Namespace) -> None:
+def cmd_contexts(_: argparse.Namespace) -> None:
     """
     List all contexts in the todo.txt file.
 
     Args:
-        args: Command-line arguments
+        _: (Unused) Command-line arguments 
     """
     todo_file = get_todo_file_path()
     tasks = read_tasks(todo_file)
 
     # Get all contexts
-    all_contexts: Set[str] = set()
+    all_contexts: set[str] = set()
     for task in tasks:
         all_contexts.update(task.contexts)
 
