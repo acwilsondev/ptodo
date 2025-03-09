@@ -1,8 +1,8 @@
+import datetime
 import os
 import re
-import datetime
 from dataclasses import dataclass
-from typing import List, Set, Optional, Dict, TextIO
+from typing import Dict, List, Optional, Set, TextIO
 
 
 @dataclass

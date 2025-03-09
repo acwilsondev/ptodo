@@ -1,8 +1,9 @@
 import os
 import tempfile
 from datetime import date
-import pytest
 from pathlib import Path
+
+import pytest
 
 from ptodo.serda import Task
 

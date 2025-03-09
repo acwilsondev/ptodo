@@ -1,12 +1,12 @@
+import os
+import sys
 import unittest
 from datetime import date
-import sys
-import os
 
 # Add the parent directory to the path so we can import the ptodo package
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from ptodo.serda import Task, serialize_task, parse_task
+from ptodo.serda import Task, parse_task, serialize_task
 
 
 class TestTask(unittest.TestCase):

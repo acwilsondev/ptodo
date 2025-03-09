@@ -1,12 +1,13 @@
 import os
-import pytest
-import tempfile
 import shutil
-from unittest.mock import patch
-from io import StringIO
 import sys
+import tempfile
+from io import StringIO
+from unittest.mock import patch
 
-from ptodo.app import main, get_todo_file_path
+import pytest
+
+from ptodo.app import get_todo_file_path, main
 
 
 class TestApp:

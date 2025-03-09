@@ -79,6 +79,7 @@ The [Todo.txt](http://todotxt.org/) format is a simple, standards-based format f
 - `key:value` adds metadata
 
 Example:
+
 ```
 x (A) 2023-04-01 2023-04-02 Complete the project documentation +Work @Computer due:2023-04-15
 ```

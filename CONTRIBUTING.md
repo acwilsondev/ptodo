@@ -13,6 +13,11 @@ Thank you for your interest in contributing to ptodo! This document provides gui
   - [Development Workflow](#development-workflow)
     - [Making Changes](#making-changes)
     - [Testing](#testing)
+      - [Requirements](#requirements)
+      - [Running Tests](#running-tests)
+      - [Test Structure](#test-structure)
+      - [Adding New Tests](#adding-new-tests)
+      - [Continuous Integration](#continuous-integration)
     - [Code Style](#code-style)
   - [Submitting Contributions](#submitting-contributions)
     - [Issues](#issues)
@@ -108,6 +113,7 @@ We use pytest for testing. All code contributions should include tests.
 #### Requirements
 
 Before running tests, make sure you have the following installed:
+
 - Python 3.6 or higher
 - pytest
 - pytest-cov (for code coverage reports)
@@ -148,11 +154,13 @@ Tests should be placed in the `tests/` directory and should follow the same stru
 #### Adding New Tests
 
 When adding new tests:
+
 1. Create a file named `test_*.py` in the tests directory
 2. Import the modules you want to test
 3. Write test functions prefixed with `test_`
 
 Example:
+
 ```python
 def test_something():
     assert True
