@@ -2,7 +2,6 @@ import datetime
 import os
 import re
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Set, TextIO
 
 
 @dataclass
@@ -11,12 +10,12 @@ class Task:
 
     description: str
     completed: bool = False
-    priority: Optional[str] = None
-    creation_date: Optional[datetime.date] = None
-    completion_date: Optional[datetime.date] = None
-    projects: Set[str] = None
-    contexts: Set[str] = None
-    metadata: Dict[str, str] = None
+    priority: str | None = None
+    creation_date: datetime.date | None = None
+    completion_date: datetime.date | None = None
+    projects: set[str] = None
+    contexts: set[str] = None
+    metadata: dict[str, str] = None
 
     def __post_init__(self):
         """Initialize default values for sets and dictionaries."""
@@ -37,7 +36,7 @@ class Task:
         return serialize_task(self)
 
 
-def parse_date(date_str: str) -> Optional[datetime.date]:
+def parse_date(date_str: str) -> datetime.date | None:
     """Parse a date string in YYYY-MM-DD format."""
     try:
         if date_str and re.match(r"^\d{4}-\d{2}-\d{2}$", date_str):
@@ -47,7 +46,7 @@ def parse_date(date_str: str) -> Optional[datetime.date]:
     return None
 
 
-def serialize_date(date_obj: Optional[datetime.date]) -> str:
+def serialize_date(date_obj: datetime.date | None) -> str:
     """Convert a date object to YYYY-MM-DD format."""
     if date_obj:
         return date_obj.strftime("%Y-%m-%d")
@@ -69,7 +68,6 @@ def parse_task(line: str) -> Task:
         line = line[2:]  # Remove the 'x ' prefix
 
     parts = line.strip().split(" ")
-    remaining_parts = []
 
     # Parse priority if present (A) to (Z)
     if parts and re.match(r"^\([A-Z]\)$", parts[0]):
@@ -149,14 +147,14 @@ def serialize_task(task: Task) -> str:
     return " ".join(parts)
 
 
-def read_tasks(filename: str) -> List[Task]:
+def read_tasks(filename: str) -> list[Task]:
     """Read tasks from a todo.txt file."""
     tasks = []
 
     if not os.path.exists(filename):
         return tasks
 
-    with open(filename, "r") as f:
+    with open(filename, "r", encoding="utf-8") as f:
         for line in f:
             if line.strip():
                 tasks.append(parse_task(line))
@@ -164,16 +162,16 @@ def read_tasks(filename: str) -> List[Task]:
     return tasks
 
 
-def write_tasks(filename: str, tasks: List[Task]) -> None:
+def write_tasks(filename: str, tasks: list[Task]) -> None:
     """Write tasks to a todo.txt file."""
-    with open(filename, "w") as f:
+    with open(filename, "w", encoding="utf-8") as f:
         for task in tasks:
             f.write(serialize_task(task) + "\n")
 
 
 def append_task(filename: str, task: Task) -> None:
     """Append a task to a todo.txt file."""
-    with open(filename, "a") as f:
+    with open(filename, "a", encoding="utf-8") as f:
         f.write(serialize_task(task) + "\n")
 
 
@@ -184,11 +182,11 @@ def today_string() -> str:
 
 def create_task(
     description: str,
-    priority: Optional[str] = None,
+    priority: str | None = None,
     add_creation_date: bool = True,
-    projects: List[str] = None,
-    contexts: List[str] = None,
-    metadata: Dict[str, str] = None,
+    projects: list[str] = None,
+    contexts: list[str] = None,
+    metadata: dict[str, str] = None,
 ) -> Task:
     """Create a new task with the given parameters."""
     task = Task(
