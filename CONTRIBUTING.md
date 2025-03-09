@@ -4,23 +4,26 @@ Thank you for your interest in contributing to ptodo! This document provides gui
 
 ## Table of Contents
 
-- [Code of Conduct](#code-of-conduct)
-- [Getting Started](#getting-started)
-  - [Setting Up Development Environment](#setting-up-development-environment)
-  - [Project Structure](#project-structure)
-- [Development Workflow](#development-workflow)
-  - [Making Changes](#making-changes)
-  - [Testing](#testing)
-  - [Code Style](#code-style)
-- [Submitting Contributions](#submitting-contributions)
-  - [Issues](#issues)
-  - [Pull Requests](#pull-requests)
-- [Release Process](#release-process)
-- [Community](#community)
+- [Contributing to ptodo](#contributing-to-ptodo)
+  - [Table of Contents](#table-of-contents)
+  - [Code of Conduct](#code-of-conduct)
+  - [Getting Started](#getting-started)
+    - [Setting Up Development Environment](#setting-up-development-environment)
+    - [Project Structure](#project-structure)
+  - [Development Workflow](#development-workflow)
+    - [Making Changes](#making-changes)
+    - [Testing](#testing)
+    - [Code Style](#code-style)
+  - [Submitting Contributions](#submitting-contributions)
+    - [Issues](#issues)
+    - [Pull Requests](#pull-requests)
+  - [Release Process](#release-process)
+  - [Community](#community)
 
 ## Code of Conduct
 
 By participating in this project, you are expected to uphold our Code of Conduct:
+
 - Be respectful and inclusive
 - Be patient and welcoming
 - Be thoughtful
@@ -35,18 +38,21 @@ By participating in this project, you are expected to uphold our Code of Conduct
    - Visit the [ptodo repository](https://github.com/awilsoncs/ptodo) and click the "Fork" button
 
 2. **Clone your fork**
+
    ```bash
    git clone https://github.com/YOUR-USERNAME/ptodo.git
    cd ptodo
    ```
 
 3. **Set up a virtual environment**
+
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
 4. **Install development dependencies**
+
    ```bash
    pip install -e ".[dev]"
    # If the above doesn't work, try:
@@ -76,6 +82,7 @@ ptodo/
 ### Making Changes
 
 1. **Create a new branch**
+
    ```bash
    git checkout -b feature/your-feature-name
    ```
@@ -86,9 +93,11 @@ ptodo/
    - Add or update tests as necessary
 
 3. **Commit your changes**
+
    ```bash
    git commit -m "Description of the changes"
    ```
+
    - Use clear and descriptive commit messages
    - Reference issue numbers if applicable (#123)
 
@@ -146,6 +155,7 @@ mypy ptodo
 ### Pull Requests
 
 1. **Push your changes to your fork**
+
    ```bash
    git push origin feature/your-feature-name
    ```
@@ -173,6 +183,7 @@ mypy ptodo
 ## Release Process
 
 The maintainers will handle the release process, which includes:
+
 1. Versioning (following [Semantic Versioning](https://semver.org/))
 2. Creating release notes
 3. Publishing to PyPI
@@ -183,4 +194,3 @@ The maintainers will handle the release process, which includes:
 - Pull Requests: For contributing code and documentation
 
 Thank you for contributing to ptodo!
-
