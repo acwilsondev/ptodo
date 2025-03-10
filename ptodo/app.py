@@ -356,6 +356,56 @@ def cmd_git_sync(_: argparse.Namespace) -> None:
         print("No changes to sync or sync failed.")
 
 
+def cmd_show(args: argparse.Namespace) -> None:
+    """
+    Show detailed information for a specific task.
+
+    Args:
+        args: Command-line arguments containing the task number
+    """
+    todo_file = get_todo_file_path()
+    git_service = GitService(todo_file.parent)
+    tasks = read_tasks(todo_file, git_service)
+
+    if not tasks:
+        print("No tasks found.")
+        return
+
+    if 1 <= args.task_number <= len(tasks):
+        task = tasks[args.task_number - 1]
+        
+        # Build a detailed view of the task
+        print(f"Task #{args.task_number}:")
+        print(f"  Status: {'Completed' if task.completed else 'Pending'}")
+        
+        if task.priority:
+            print(f"  Priority: {task.priority}")
+        
+        if task.creation_date:
+            print(f"  Created: {task.creation_date}")
+        
+        if task.completion_date:
+            print(f"  Completed: {task.completion_date}")
+        
+        print(f"  Description: {task.description}")
+        
+        if task.projects:
+            print(f"  Projects: {', '.join(task.projects)}")
+        
+        if task.contexts:
+            print(f"  Contexts: {', '.join(task.contexts)}")
+            
+        if task.metadata:
+            print("  Metadata:")
+            for key, value in task.metadata.items():
+                print(f"    {key}: {value}")
+                
+        print(f"\nRaw format: {serialize_task(task)}")
+    else:
+        print(f"Error: Task number {args.task_number} out of range (1-{len(tasks)}).")
+
+
+
 def main() -> None:
     """
     Main function for the todo.txt CLI.
@@ -369,6 +419,7 @@ Examples:\n
   ptodo list                    # List all incomplete tasks\n
   ptodo add "Buy groceries"     # Add a new task\n
   ptodo done 1                  # Mark task #1 as complete\n
+  ptodo show 2                  # Show details for task #2\n
 \n
 Environment Variables:\n
   PTODO_DIRECTORY               # Directory for todo files (default: ~/.ptodo)\n
@@ -495,6 +546,21 @@ Note: Contexts in todo.txt format are words prefixed with '@' like @phone
 """,
     )
 
+    # show command
+    show_parser = subparsers.add_parser(
+        "show",
+        help="Show detailed information for a task",
+        description="Show detailed information for a task by its number",
+        epilog="""
+Examples:
+  ptodo show 2                  # Show detailed information for task #2
+Note: Task numbers are shown when listing tasks with 'ptodo list'
+""",
+    )
+    show_parser.add_argument(
+        "task_number", type=int, help="Task number to show details for"
+    )
+
     # git commands
     git_parser = subparsers.add_parser(
         "git",
@@ -544,6 +610,8 @@ Note: Contexts in todo.txt format are words prefixed with '@' like @phone
         cmd_projects(args)
     elif args.command == "contexts":
         cmd_contexts(args)
+    elif args.command == "show":
+        cmd_show(args)
     elif args.command == "git":
         if args.git_command == "init":
             cmd_git_init(args)
