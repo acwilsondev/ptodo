@@ -116,8 +116,8 @@ def cmd_add(args: argparse.Namespace) -> None:
     # Create a new task
     task = Task(
         description=args.text,
-        priority=args.priority,
-        creation_date=date.today() if args.date else None,
+        priority=getattr(args, 'priority', None),
+        creation_date=date.today() if getattr(args, 'date', False) else None,
     )
 
     tasks.append(task)
@@ -140,14 +140,14 @@ def cmd_done(args: argparse.Namespace) -> None:
         print("No tasks found.")
         return
 
-    if 1 <= args.task_number <= len(tasks):
-        task = tasks[args.task_number - 1]
+    if 1 <= args.task_id <= len(tasks):
+        task = tasks[args.task_id - 1]
         task.complete()
 
         write_tasks(tasks, todo_file, git_service)
         print(f"Completed: {serialize_task(task)}")
     else:
-        print(f"Error: Task number {args.task_number} out of range (1-{len(tasks)}).")
+        print(f"Error: Task number {args.task_id} out of range (1-{len(tasks)}).")
 
 
 def cmd_pri(args: argparse.Namespace) -> None:
@@ -165,15 +165,15 @@ def cmd_pri(args: argparse.Namespace) -> None:
         print("No tasks found.")
         return
 
-    if 1 <= args.task_number <= len(tasks):
-        task = tasks[args.task_number - 1]
+    if 1 <= args.task_id <= len(tasks):
+        task = tasks[args.task_id - 1]
         original = serialize_task(task)
         task.priority = args.priority
 
         write_tasks(tasks, todo_file, git_service)
         print(f"Updated: {original} → {serialize_task(task)}")
     else:
-        print(f"Error: Task number {args.task_number} out of range (1-{len(tasks)}).")
+        print(f"Error: Task number {args.task_id} out of range (1-{len(tasks)}).")
 
 
 def cmd_show(args: argparse.Namespace) -> None:
@@ -191,11 +191,11 @@ def cmd_show(args: argparse.Namespace) -> None:
         print("No tasks found.")
         return
 
-    if 1 <= args.task_number <= len(tasks):
-        task = tasks[args.task_number - 1]
+    if 1 <= args.task_id <= len(tasks):
+        task = tasks[args.task_id - 1]
 
         # Build a detailed view of the task
-        print(f"Task #{args.task_number}:")
+        print(f"Task #{args.task_id}:")
         print(f"  Status: {'Completed' if task.completed else 'Pending'}")
 
         if task.priority:
@@ -222,5 +222,5 @@ def cmd_show(args: argparse.Namespace) -> None:
 
         print(f"\nRaw format: {serialize_task(task)}")
     else:
-        print(f"Error: Task number {args.task_number} out of range (1-{len(tasks)}).")
+        print(f"Error: Task number {args.task_id} out of range (1-{len(tasks)}).")
 

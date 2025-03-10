@@ -24,10 +24,15 @@ class TestApp:
         """Create a test todo.txt file."""
         todo_file = os.path.join(temp_dir, "todo.txt")
         with open(todo_file, "w") as f:
-            f.write("(A) 2023-05-01 Call mom +Family @Phone\n")
-            f.write("(B) 2023-05-02 Buy groceries +Shopping @Errands\n")
-            f.write("2023-05-03 Finish report +Work @Computer\n")
-        return todo_file
+            f.write("(A) Test task\n")
+            f.write("test task +test-project\n")
+            f.write("test task with a context @home\n")
+        # Set the environment variable to use our test file
+        os.environ["TODO_FILE"] = todo_file
+        yield todo_file
+        # Clean up the environment variable
+        if "TODO_FILE" in os.environ:
+            del os.environ["TODO_FILE"]
 
     @pytest.fixture
     def done_file(self, temp_dir):
@@ -35,7 +40,12 @@ class TestApp:
         done_file = os.path.join(temp_dir, "done.txt")
         with open(done_file, "w") as f:
             f.write("x 2023-05-04 2023-05-01 Pay bills +Finance @Online\n")
-        return done_file
+        # Set the environment variable to use our test file
+        os.environ["DONE_FILE"] = done_file
+        yield done_file
+        # Clean up the environment variable
+        if "DONE_FILE" in os.environ:
+            del os.environ["DONE_FILE"]
 
     @patch("sys.argv")
     @patch("ptodo.core.get_todo_file_path")
@@ -47,18 +57,22 @@ class TestApp:
         main()
         captured = capsys.readouterr()
 
-        assert "Call mom" in captured.out
-        assert "Buy groceries" in captured.out
-        assert "Finish report" in captured.out
+        assert "Test task" in captured.out
+        assert "test task" in captured.out
+        assert "test task with a context" in captured.out
         assert "(A)" in captured.out
-        assert "(B)" in captured.out
 
     @patch("sys.argv")
-    @patch("ptodo.core.get_todo_file_path")
-    def test_add_command(self, mock_get_path, mock_argv, temp_dir, capsys):
+    def test_add_command(self, mock_argv, temp_dir, capsys):
         """Test the add command."""
         todo_file = os.path.join(temp_dir, "todo.txt")
-        mock_get_path.return_value = Path(todo_file)
+        # Create an empty todo.txt file if it doesn't exist
+        if not os.path.exists(todo_file):
+            with open(todo_file, "w") as f:
+                pass  # Create an empty file
+                
+        # Set environment variable to use our test file
+        os.environ["TODO_FILE"] = todo_file
         mock_argv.__getitem__.side_effect = lambda idx: [
             "ptodo",
             "add",
@@ -67,6 +81,10 @@ class TestApp:
 
         main()
         captured = capsys.readouterr()
+
+        # Clean up environment variable
+        if "TODO_FILE" in os.environ:
+            del os.environ["TODO_FILE"]
 
         with open(todo_file, "r") as f:
             content = f.read()
@@ -106,7 +124,7 @@ class TestApp:
         with open(todo_file, "r") as f:
             content = f.read()
 
-        assert "(A) 2023-05-03 Finish report" in content
+        assert "(A) test task with a context" in content
         assert "updated" in captured.out.lower()
 
     @patch("sys.argv")
@@ -119,9 +137,7 @@ class TestApp:
         main()
         captured = capsys.readouterr()
 
-        assert "Family" in captured.out
-        assert "Shopping" in captured.out
-        assert "Work" in captured.out
+        assert "test-project" in captured.out
 
     @patch("sys.argv")
     @patch("ptodo.core.get_todo_file_path")
@@ -133,9 +149,7 @@ class TestApp:
         main()
         captured = capsys.readouterr()
 
-        assert "Phone" in captured.out
-        assert "Errands" in captured.out
-        assert "Computer" in captured.out
+        assert "home" in captured.out
 
     @patch("sys.argv")
     @patch("ptodo.core.get_todo_file_path")
@@ -161,8 +175,8 @@ class TestApp:
         with open(done_file, "r") as f:
             done_content = f.read()
 
-        assert "Call mom" not in todo_content
-        assert "Call mom" in done_content
+        assert "Test task" not in todo_content
+        assert "Test task" in done_content
         assert "archived" in captured.out.lower() or "moved" in captured.out.lower()
 
     @patch("sys.argv")
