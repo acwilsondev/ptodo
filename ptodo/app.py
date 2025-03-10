@@ -6,9 +6,13 @@ from datetime import date
 from pathlib import Path
 
 from .serda import Task, parse_task, serialize_task
+from .git_service import GitService
+from .utils import get_ptodo_directory
 
+VERSION = "0.1.0"
 DEFAULT_TODO_FILENAME = "todo.txt"
 DEFAULT_DONE_FILENAME = "done.txt"
+
 
 
 def get_todo_file_path() -> Path:
@@ -16,7 +20,8 @@ def get_todo_file_path() -> Path:
     Get the path to the todo.txt file.
 
     First checks the TODO_FILE environment variable.
-    If not set, uses the default (todo.txt in the current directory).
+    If not set, uses the default (todo.txt in the ptodo directory).
+    The ptodo directory is either ~/.ptodo or $PTODO_DIRECTORY if set.
 
     Returns:
         Path: Path to the todo.txt file
@@ -24,7 +29,7 @@ def get_todo_file_path() -> Path:
     todo_file = os.environ.get("TODO_FILE")
     if todo_file:
         return Path(todo_file)
-    return Path.cwd() / DEFAULT_TODO_FILENAME
+    return get_ptodo_directory() / DEFAULT_TODO_FILENAME
 
 
 def get_done_file_path() -> Path:
@@ -32,7 +37,8 @@ def get_done_file_path() -> Path:
     Get the path to the done.txt file.
 
     First checks the DONE_FILE environment variable.
-    If not set, uses the default (done.txt in the current directory).
+    If not set, uses the default (done.txt in the ptodo directory).
+    The ptodo directory is either ~/.ptodo or $PTODO_DIRECTORY if set.
 
     Returns:
         Path: Path to the done.txt file
@@ -40,20 +46,25 @@ def get_done_file_path() -> Path:
     done_file = os.environ.get("DONE_FILE")
     if done_file:
         return Path(done_file)
-    return Path.cwd() / DEFAULT_DONE_FILENAME
+    return get_ptodo_directory() / DEFAULT_DONE_FILENAME
 
 
-def read_tasks(file_path: Path) -> list[Task]:
+def read_tasks(file_path: Path, git_service: GitService = None) -> list[Task]:
     """
     Read tasks from a file.
 
     Args:
         file_path: Path to the todo.txt file
+        git_service: Optional GitService for syncing changes
 
     Returns:
         List of Task objects
     """
     tasks = []
+
+    # Pull the latest changes if git is configured
+    if git_service and git_service.is_repo() and git_service.has_remote():
+        git_service.pull()
 
     try:
         with open(file_path, "r", encoding="utf-8") as f:
@@ -75,17 +86,22 @@ def read_tasks(file_path: Path) -> list[Task]:
     return tasks
 
 
-def write_tasks(tasks: list[Task], file_path: Path) -> None:
+def write_tasks(tasks: list[Task], file_path: Path, git_service: GitService = None) -> None:
     """
     Write tasks to a file.
 
     Args:
         tasks: List of Task objects
         file_path: Path to the output file
+        git_service: Optional GitService for syncing changes
     """
     with open(file_path, "w", encoding="utf-8") as f:
         for task in tasks:
             f.write(serialize_task(task) + "\n")
+    
+    # Auto-sync changes if git is configured
+    if git_service and git_service.is_repo():
+        git_service.sync(file_path, f"Update {file_path.name}")
 
 
 def cmd_list(args: argparse.Namespace) -> None:
@@ -96,7 +112,8 @@ def cmd_list(args: argparse.Namespace) -> None:
         args: Command-line arguments
     """
     todo_file = get_todo_file_path()
-    tasks = read_tasks(todo_file)
+    git_service = GitService(todo_file.parent)
+    tasks = read_tasks(todo_file, git_service)
 
     # Filter tasks
     if args.project:
@@ -123,9 +140,13 @@ def cmd_list(args: argparse.Namespace) -> None:
         creation_date_str = f"{task.creation_date} " if task.creation_date else ""
 
         print(
-            f"{i:3d}. {completion_str}{priority_str}{completion_date_str}"
+            f"[Task {i}] {completion_str}{priority_str}{completion_date_str}"
             f"{creation_date_str}{task.description}"
         )
+
+    # Add a helpful note about task numbers
+    print("\nNote: You can use task numbers with commands like 'done' and 'pri'.")
+    print("      For example: 'ptodo done 3' or 'ptodo pri 2 A'")
 
 
 def cmd_add(args: argparse.Namespace) -> None:
@@ -136,7 +157,8 @@ def cmd_add(args: argparse.Namespace) -> None:
         args: Command-line arguments
     """
     todo_file = get_todo_file_path()
-    tasks = read_tasks(todo_file)
+    git_service = GitService(todo_file.parent)
+    tasks = read_tasks(todo_file, git_service)
 
     # Create a new task
     task = Task(
@@ -146,7 +168,7 @@ def cmd_add(args: argparse.Namespace) -> None:
     )
 
     tasks.append(task)
-    write_tasks(tasks, todo_file)
+    write_tasks(tasks, todo_file, git_service)
     print(f"Added: {serialize_task(task)}")
 
 
@@ -158,7 +180,8 @@ def cmd_done(args: argparse.Namespace) -> None:
         args: Command-line arguments
     """
     todo_file = get_todo_file_path()
-    tasks = read_tasks(todo_file)
+    git_service = GitService(todo_file.parent)
+    tasks = read_tasks(todo_file, git_service)
 
     if not tasks:
         print("No tasks found.")
@@ -168,7 +191,7 @@ def cmd_done(args: argparse.Namespace) -> None:
         task = tasks[args.task_number - 1]
         task.complete()
 
-        write_tasks(tasks, todo_file)
+        write_tasks(tasks, todo_file, git_service)
         print(f"Completed: {serialize_task(task)}")
     else:
         print(f"Error: Task number {args.task_number} out of range (1-{len(tasks)}).")
@@ -182,7 +205,8 @@ def cmd_pri(args: argparse.Namespace) -> None:
         args: Command-line arguments
     """
     todo_file = get_todo_file_path()
-    tasks = read_tasks(todo_file)
+    git_service = GitService(todo_file.parent)
+    tasks = read_tasks(todo_file, git_service)
 
     if not tasks:
         print("No tasks found.")
@@ -191,10 +215,9 @@ def cmd_pri(args: argparse.Namespace) -> None:
     if 1 <= args.task_number <= len(tasks):
         task = tasks[args.task_number - 1]
         original = serialize_task(task)
-
         task.priority = args.priority
 
-        write_tasks(tasks, todo_file)
+        write_tasks(tasks, todo_file, git_service)
         print(f"Updated: {original} → {serialize_task(task)}")
     else:
         print(f"Error: Task number {args.task_number} out of range (1-{len(tasks)}).")
@@ -208,10 +231,11 @@ def cmd_archive(_: argparse.Namespace) -> None:
         _: (Unused) Command-line arguments
     """
     todo_file = get_todo_file_path()
+    git_service = GitService(todo_file.parent)
     done_file = get_done_file_path()
 
-    tasks = read_tasks(todo_file)
-    done_tasks = read_tasks(done_file)
+    tasks = read_tasks(todo_file, git_service)
+    done_tasks = read_tasks(done_file, git_service)
 
     # Find completed tasks
     completed_tasks = [t for t in tasks if t.completed]
@@ -223,10 +247,10 @@ def cmd_archive(_: argparse.Namespace) -> None:
 
     # Add completed tasks to done.txt
     done_tasks.extend(completed_tasks)
-    write_tasks(done_tasks, done_file)
+    write_tasks(done_tasks, done_file, git_service)
 
     # Remove completed tasks from todo.txt
-    write_tasks(incomplete_tasks, todo_file)
+    write_tasks(incomplete_tasks, todo_file, git_service)
 
     print(f"Archived {len(completed_tasks)} completed task(s).")
 
@@ -239,7 +263,8 @@ def cmd_projects(_: argparse.Namespace) -> None:
         _: (Unused) Command-line arguments
     """
     todo_file = get_todo_file_path()
-    tasks = read_tasks(todo_file)
+    git_service = GitService(todo_file.parent)
+    tasks = read_tasks(todo_file, git_service)
 
     # Get all projects
     all_projects: set[str] = set()
@@ -264,7 +289,8 @@ def cmd_contexts(_: argparse.Namespace) -> None:
         _: (Unused) Command-line arguments
     """
     todo_file = get_todo_file_path()
-    tasks = read_tasks(todo_file)
+    git_service = GitService(todo_file.parent)
+    tasks = read_tasks(todo_file, git_service)
 
     # Get all contexts
     all_contexts: set[str] = set()
@@ -281,6 +307,55 @@ def cmd_contexts(_: argparse.Namespace) -> None:
         print(f"  {context}")
 
 
+def cmd_git_init(_: argparse.Namespace) -> None:
+    """
+    Initialize a git repository in the current directory.
+
+    Args:
+        _: (Unused) Command-line arguments
+    """
+    todo_file = get_todo_file_path()
+    git_service = GitService(todo_file.parent)
+    git_service.init()
+
+
+def cmd_git_remote(args: argparse.Namespace) -> None:
+    """
+    Add or update a git remote.
+
+    Args:
+        args: Command-line arguments
+    """
+    todo_file = get_todo_file_path()
+    git_service = GitService(todo_file.parent)
+    if not git_service.is_repo():
+        print("Not a git repository. Run 'ptodo git init' first.")
+        return
+
+    git_service.add_remote(args.name, args.url)
+
+
+def cmd_git_sync(_: argparse.Namespace) -> None:
+    """
+    Sync changes with the remote repository.
+
+    Args:
+        _: (Unused) Command-line arguments
+    """
+    todo_file = get_todo_file_path()
+    git_service = GitService(todo_file.parent)
+    if not git_service.is_repo():
+        print("Not a git repository. Run 'ptodo git init' first.")
+        return
+
+    done_file = get_done_file_path()
+    
+    if git_service.sync(commit_message="Manual sync of todo files"):
+        print("Successfully synced changes with remote repository.")
+    else:
+        print("No changes to sync or sync failed.")
+
+
 def main() -> None:
     """
     Main function for the todo.txt CLI.
@@ -288,19 +363,22 @@ def main() -> None:
     Parses command-line arguments and dispatches to the appropriate handler.
     """
     parser = argparse.ArgumentParser(
-        description="Command-line todo.txt manager",
+        description=f"Command-line todo.txt manager v{VERSION}",
         epilog="""
 Examples:\n
   ptodo list                    # List all incomplete tasks\n
-  ptodo list --all              # List all tasks (including completed)\n
   ptodo add "Buy groceries"     # Add a new task\n
   ptodo done 1                  # Mark task #1 as complete\n
 \n
 Environment Variables:\n
-  TODO_FILE                     # Path to todo.txt file (default: ./todo.txt)\n
-  DONE_FILE                     # Path to done.txt file (default: ./done.txt)\n
+  PTODO_DIRECTORY               # Directory for todo files (default: ~/.ptodo)\n
+  TODO_FILE                     # Path to todo.txt file (default: ~/.ptodo/todo.txt)\n
+  DONE_FILE                     # Path to done.txt file (default: ~/.ptodo/done.txt)\n
 """,
     )
+    # Add version flag
+    parser.add_argument('--version', '-v', action='version', version=f'ptodo {VERSION}',
+                        help='Show the version number and exit')
     subparsers = parser.add_subparsers(dest="command", help="Command to run")
 
     # list command
@@ -417,6 +495,38 @@ Note: Contexts in todo.txt format are words prefixed with '@' like @phone
 """,
     )
 
+    # git commands
+    git_parser = subparsers.add_parser(
+        "git",
+        help="Git operations for synchronizing tasks",
+        description="Git operations for synchronizing tasks across devices",
+    )
+    git_subparsers = git_parser.add_subparsers(dest="git_command", help="Git command to run")
+    
+    # git init command
+    git_subparsers.add_parser(
+        "init",
+        help="Initialize a git repository",
+        description="Initialize a git repository in the ptodo directory for task synchronization",
+    )
+    
+    # git remote command
+    git_remote_parser = git_subparsers.add_parser(
+        "remote",
+        help="Add or update a git remote",
+        description="Add or update a git remote for task synchronization",
+    )
+    git_remote_parser.add_argument("name", help="Remote name (e.g., 'origin')")
+    git_remote_parser.add_argument("url", help="Remote URL (e.g., 'https://github.com/user/repo.git')")
+    
+    # git sync command
+    git_subparsers.add_parser(
+        "sync",
+        help="Sync changes with the remote repository",
+        description="Pull changes from the remote repository, then push local changes",
+    )
+
+    # Parse command-line arguments
     args = parser.parse_args()
 
     # Dispatch to the appropriate handler
@@ -434,6 +544,15 @@ Note: Contexts in todo.txt format are words prefixed with '@' like @phone
         cmd_projects(args)
     elif args.command == "contexts":
         cmd_contexts(args)
+    elif args.command == "git":
+        if args.git_command == "init":
+            cmd_git_init(args)
+        elif args.git_command == "remote":
+            cmd_git_remote(args)
+        elif args.git_command == "sync":
+            cmd_git_sync(args)
+        else:
+            parser.parse_args(["git", "-h"])
     else:
         parser.print_help()
 

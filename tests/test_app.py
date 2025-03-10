@@ -2,6 +2,7 @@ import os
 import shutil
 import tempfile
 from unittest.mock import patch
+from pathlib import Path
 
 import pytest
 
@@ -40,7 +41,7 @@ class TestApp:
     @patch("ptodo.app.get_todo_file_path")
     def test_list_command(self, mock_get_path, mock_argv, todo_file, capsys):
         """Test the list command."""
-        mock_get_path.return_value = todo_file
+        mock_get_path.return_value = Path(todo_file)
         mock_argv.__getitem__.side_effect = lambda idx: ["ptodo", "list"][idx]
 
         main()
@@ -57,7 +58,7 @@ class TestApp:
     def test_add_command(self, mock_get_path, mock_argv, temp_dir, capsys):
         """Test the add command."""
         todo_file = os.path.join(temp_dir, "todo.txt")
-        mock_get_path.return_value = todo_file
+        mock_get_path.return_value = Path(todo_file)
         mock_argv.__getitem__.side_effect = lambda idx: [
             "ptodo",
             "add",
@@ -77,7 +78,7 @@ class TestApp:
     @patch("ptodo.app.get_todo_file_path")
     def test_done_command(self, mock_get_path, mock_argv, todo_file, capsys):
         """Test the done command."""
-        mock_get_path.return_value = todo_file
+        mock_get_path.return_value = Path(todo_file)
         mock_argv.__getitem__.side_effect = lambda idx: ["ptodo", "done", "1"][idx]
 
         main()
@@ -96,7 +97,7 @@ class TestApp:
     @patch("ptodo.app.get_todo_file_path")
     def test_pri_command(self, mock_get_path, mock_argv, todo_file, capsys):
         """Test the pri (priority) command."""
-        mock_get_path.return_value = todo_file
+        mock_get_path.return_value = Path(todo_file)
         mock_argv.__getitem__.side_effect = lambda idx: ["ptodo", "pri", "3", "A"][idx]
 
         main()
@@ -112,7 +113,7 @@ class TestApp:
     @patch("ptodo.app.get_todo_file_path")
     def test_projects_command(self, mock_get_path, mock_argv, todo_file, capsys):
         """Test the projects command."""
-        mock_get_path.return_value = todo_file
+        mock_get_path.return_value = Path(todo_file)
         mock_argv.__getitem__.side_effect = lambda idx: ["ptodo", "projects"][idx]
 
         main()
@@ -126,7 +127,7 @@ class TestApp:
     @patch("ptodo.app.get_todo_file_path")
     def test_contexts_command(self, mock_get_path, mock_argv, todo_file, capsys):
         """Test the contexts command."""
-        mock_get_path.return_value = todo_file
+        mock_get_path.return_value = Path(todo_file)
         mock_argv.__getitem__.side_effect = lambda idx: ["ptodo", "contexts"][idx]
 
         main()
@@ -143,14 +144,14 @@ class TestApp:
     ):
         """Test the archive command."""
         # First mark a task as done
-        mock_get_path.return_value = todo_file
+        mock_get_path.return_value = Path(todo_file)
         mock_argv.__getitem__.side_effect = lambda idx: ["ptodo", "done", "1"][idx]
         main()
 
         # Then archive completed tasks
-        mock_get_path.return_value = todo_file
+        mock_get_path.return_value = Path(todo_file)
         mock_argv.__getitem__.side_effect = lambda idx: ["ptodo", "archive"][idx]
-        with patch("ptodo.app.get_done_file_path", return_value=done_file):
+        with patch("ptodo.app.get_done_file_path", return_value=Path(done_file)):
             main()
 
         captured = capsys.readouterr()
