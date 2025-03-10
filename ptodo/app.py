@@ -1,323 +1,36 @@
-#!/usr/bin/env python3
 import argparse
-import os
 import sys
-from datetime import date
-from pathlib import Path
+from typing import List, Optional
 
-from .serda import Task, parse_task, serialize_task
+from .commands.config_commands import cmd_config
+from .commands.git_commands import cmd_git_init, cmd_git_remote, cmd_git_sync
+from .commands.organization_commands import cmd_archive, cmd_contexts, cmd_projects
+from .commands.task_commands import cmd_add, cmd_done, cmd_list, cmd_pri, cmd_show
 
-DEFAULT_TODO_FILENAME = "todo.txt"
-DEFAULT_DONE_FILENAME = "done.txt"
+VERSION = "0.2.0"
 
 
-def get_todo_file_path() -> Path:
-    """
-    Get the path to the todo.txt file.
+def main(args: Optional[List[str]] = None) -> int:
+    """Main entry point for the ptodo application.
 
-    First checks the TODO_FILE environment variable.
-    If not set, uses the default (todo.txt in the current directory).
+    Args:
+        args: Command line arguments. Defaults to sys.argv[1:].
 
     Returns:
-        Path: Path to the todo.txt file
+        Integer exit code.
     """
-    todo_file = os.environ.get("TODO_FILE")
-    if todo_file:
-        return Path(todo_file)
-    return Path.cwd() / DEFAULT_TODO_FILENAME
+    if args is None:
+        args = sys.argv[1:]
 
+    # Create the top-level parser
+    parser = argparse.ArgumentParser(description="Plain-text task management")
+    parser.add_argument("--version", action="version", version=f"ptodo {VERSION}")
 
-def get_done_file_path() -> Path:
-    """
-    Get the path to the done.txt file.
-
-    First checks the DONE_FILE environment variable.
-    If not set, uses the default (done.txt in the current directory).
-
-    Returns:
-        Path: Path to the done.txt file
-    """
-    done_file = os.environ.get("DONE_FILE")
-    if done_file:
-        return Path(done_file)
-    return Path.cwd() / DEFAULT_DONE_FILENAME
-
-
-def read_tasks(file_path: Path) -> list[Task]:
-    """
-    Read tasks from a file.
-
-    Args:
-        file_path: Path to the todo.txt file
-
-    Returns:
-        List of Task objects
-    """
-    tasks = []
-
-    try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line:
-                    try:
-                        task = parse_task(line)
-                        tasks.append(task)
-                    except ValueError as e:
-                        print(
-                            f"Warning: Skipping invalid task: {line} ({e})",
-                            file=sys.stderr,
-                        )
-    except FileNotFoundError:
-        # If the file doesn't exist, just return an empty list
-        pass
-
-    return tasks
-
-
-def write_tasks(tasks: list[Task], file_path: Path) -> None:
-    """
-    Write tasks to a file.
-
-    Args:
-        tasks: List of Task objects
-        file_path: Path to the output file
-    """
-    with open(file_path, "w", encoding="utf-8") as f:
-        for task in tasks:
-            f.write(serialize_task(task) + "\n")
-
-
-def cmd_list(args: argparse.Namespace) -> None:
-    """
-    List tasks from the todo.txt file.
-
-    Args:
-        args: Command-line arguments
-    """
-    todo_file = get_todo_file_path()
-    tasks = read_tasks(todo_file)
-
-    # Filter tasks
-    if args.project:
-        tasks = [t for t in tasks if args.project in t.projects]
-    if args.context:
-        tasks = [t for t in tasks if args.context in t.contexts]
-    if args.priority:
-        tasks = [t for t in tasks if t.priority == args.priority]
-    if args.completed:
-        tasks = [t for t in tasks if t.completed]
-    elif not args.all:
-        # By default, show only incomplete tasks
-        tasks = [t for t in tasks if not t.completed]
-
-    # Print tasks
-    if not tasks:
-        print("No matching tasks found.")
-        return
-
-    for i, task in enumerate(tasks, 1):
-        priority_str = f"({task.priority}) " if task.priority else ""
-        completion_str = "x " if task.completed else ""
-        completion_date_str = f"{task.completion_date} " if task.completion_date else ""
-        creation_date_str = f"{task.creation_date} " if task.creation_date else ""
-
-        print(
-            f"{i:3d}. {completion_str}{priority_str}{completion_date_str}"
-            f"{creation_date_str}{task.description}"
-        )
-
-
-def cmd_add(args: argparse.Namespace) -> None:
-    """
-    Add a new task to the todo.txt file.
-
-    Args:
-        args: Command-line arguments
-    """
-    todo_file = get_todo_file_path()
-    tasks = read_tasks(todo_file)
-
-    # Create a new task
-    task = Task(
-        description=args.text,
-        priority=args.priority,
-        creation_date=date.today() if args.date else None,
-    )
-
-    tasks.append(task)
-    write_tasks(tasks, todo_file)
-    print(f"Added: {serialize_task(task)}")
-
-
-def cmd_done(args: argparse.Namespace) -> None:
-    """
-    Mark a task as done.
-
-    Args:
-        args: Command-line arguments
-    """
-    todo_file = get_todo_file_path()
-    tasks = read_tasks(todo_file)
-
-    if not tasks:
-        print("No tasks found.")
-        return
-
-    if 1 <= args.task_number <= len(tasks):
-        task = tasks[args.task_number - 1]
-        task.complete()
-
-        write_tasks(tasks, todo_file)
-        print(f"Completed: {serialize_task(task)}")
-    else:
-        print(f"Error: Task number {args.task_number} out of range (1-{len(tasks)}).")
-
-
-def cmd_pri(args: argparse.Namespace) -> None:
-    """
-    Set the priority of a task.
-
-    Args:
-        args: Command-line arguments
-    """
-    todo_file = get_todo_file_path()
-    tasks = read_tasks(todo_file)
-
-    if not tasks:
-        print("No tasks found.")
-        return
-
-    if 1 <= args.task_number <= len(tasks):
-        task = tasks[args.task_number - 1]
-        original = serialize_task(task)
-
-        task.priority = args.priority
-
-        write_tasks(tasks, todo_file)
-        print(f"Updated: {original} → {serialize_task(task)}")
-    else:
-        print(f"Error: Task number {args.task_number} out of range (1-{len(tasks)}).")
-
-
-def cmd_archive(_: argparse.Namespace) -> None:
-    """
-    Move completed tasks to the done.txt file.
-
-    Args:
-        _: (Unused) Command-line arguments
-    """
-    todo_file = get_todo_file_path()
-    done_file = get_done_file_path()
-
-    tasks = read_tasks(todo_file)
-    done_tasks = read_tasks(done_file)
-
-    # Find completed tasks
-    completed_tasks = [t for t in tasks if t.completed]
-    incomplete_tasks = [t for t in tasks if not t.completed]
-
-    if not completed_tasks:
-        print("No completed tasks to archive.")
-        return
-
-    # Add completed tasks to done.txt
-    done_tasks.extend(completed_tasks)
-    write_tasks(done_tasks, done_file)
-
-    # Remove completed tasks from todo.txt
-    write_tasks(incomplete_tasks, todo_file)
-
-    print(f"Archived {len(completed_tasks)} completed task(s).")
-
-
-def cmd_projects(_: argparse.Namespace) -> None:
-    """
-    List all projects in the todo.txt file.
-
-    Args:
-        _: (Unused) Command-line arguments
-    """
-    todo_file = get_todo_file_path()
-    tasks = read_tasks(todo_file)
-
-    # Get all projects
-    all_projects: set[str] = set()
-    for task in tasks:
-        all_projects.update(task.projects)
-
-    # Print projects
-    if not all_projects:
-        print("No projects found.")
-        return
-
-    print("Projects:")
-    for project in sorted(all_projects):
-        print(f"  {project}")
-
-
-def cmd_contexts(_: argparse.Namespace) -> None:
-    """
-    List all contexts in the todo.txt file.
-
-    Args:
-        _: (Unused) Command-line arguments
-    """
-    todo_file = get_todo_file_path()
-    tasks = read_tasks(todo_file)
-
-    # Get all contexts
-    all_contexts: set[str] = set()
-    for task in tasks:
-        all_contexts.update(task.contexts)
-
-    # Print contexts
-    if not all_contexts:
-        print("No contexts found.")
-        return
-
-    print("Contexts:")
-    for context in sorted(all_contexts):
-        print(f"  {context}")
-
-
-def main() -> None:
-    """
-    Main function for the todo.txt CLI.
-
-    Parses command-line arguments and dispatches to the appropriate handler.
-    """
-    parser = argparse.ArgumentParser(
-        description="Command-line todo.txt manager",
-        epilog="""
-Examples:\n
-  ptodo list                    # List all incomplete tasks\n
-  ptodo list --all              # List all tasks (including completed)\n
-  ptodo add "Buy groceries"     # Add a new task\n
-  ptodo done 1                  # Mark task #1 as complete\n
-\n
-Environment Variables:\n
-  TODO_FILE                     # Path to todo.txt file (default: ./todo.txt)\n
-  DONE_FILE                     # Path to done.txt file (default: ./done.txt)\n
-""",
-    )
+    # Create subparsers for each command
     subparsers = parser.add_subparsers(dest="command", help="Command to run")
 
-    # list command
-    list_parser = subparsers.add_parser(
-        "list",
-        help="List tasks",
-        description="List and filter tasks from your todo.txt file",
-        epilog="""
-Examples:
-  ptodo list                    # List all incomplete tasks
-  ptodo list --all              # List all tasks (including completed)
-  ptodo list --completed        # List only completed tasks
-  ptodo list --project home     # List tasks for project 'home' (+home)
-  ptodo list --context phone    # List tasks with context 'phone' (@phone)
-  ptodo list --priority A       # List tasks with priority A
-""",
-    )
+    # List command
+    list_parser = subparsers.add_parser("list", help="List tasks")
     list_parser.add_argument(
         "--all",
         "-a",
@@ -331,112 +44,94 @@ Examples:
     list_parser.add_argument("--context", "-@", help="Filter by context")
     list_parser.add_argument("--priority", help="Filter by priority (A-Z)")
 
-    # add command
-    add_parser = subparsers.add_parser(
-        "add",
-        help="Add a new task",
-        description="Add a new task to your todo.txt file",
-        epilog="""
-Examples:
-  ptodo add "Buy groceries"                      # Add a simple task
-  ptodo add "Buy milk @store +shopping"          # Add task with context and project
-  ptodo add "Call mom" --priority A              # Add high priority task
-  ptodo add "Submit report" --date               # Add task with creation date
-  ptodo add "Email client @work +project"        # Add task with context and project
-""",
-    )
-    add_parser.add_argument("text", help="Task description")
-    add_parser.add_argument("--priority", "-p", help="Task priority (A-Z)")
-    add_parser.add_argument(
-        "--date", "-d", action="store_true", help="Add creation date"
+    # Add command
+    add_parser = subparsers.add_parser("add", help="Add a task")
+    add_parser.add_argument("text", help="Task text")
+
+    # Done command
+    done_parser = subparsers.add_parser("done", help="Mark a task as done")
+    done_parser.add_argument("task_id", type=int, help="Task ID")
+
+    # Priority command
+    pri_parser = subparsers.add_parser("pri", help="Set task priority")
+    pri_parser.add_argument("task_id", type=int, help="Task ID")
+    pri_parser.add_argument("priority", help="Priority (A-Z, or - to remove)")
+
+    # Show command
+    show_parser = subparsers.add_parser("show", help="Show a task")
+    show_parser.add_argument("task_id", type=int, help="Task ID")
+
+    # Projects command
+    subparsers.add_parser("projects", help="List projects")
+
+    # Contexts command
+    subparsers.add_parser("contexts", help="List contexts")
+
+    # Archive command
+    subparsers.add_parser("archive", help="Archive completed tasks")
+
+    # Git commands
+    subparsers.add_parser("git-init", help="Initialize Git repository")
+
+    git_remote_parser = subparsers.add_parser("git-remote", help="Set Git remote")
+    git_remote_parser.add_argument("url", help="Remote URL")
+
+    git_sync_parser = subparsers.add_parser("git-sync", help="Sync with Git remote")
+    git_sync_parser.add_argument("--message", "-m", help="Commit message")
+
+    # Config command
+    config_parser = subparsers.add_parser("config", help="Manage configuration")
+    config_subparsers = config_parser.add_subparsers(
+        dest="config_command", help="Config command to run"
     )
 
-    # done command
-    done_parser = subparsers.add_parser(
-        "done",
-        help="Mark a task as done",
-        description="Mark a task as completed by its number",
-        epilog="""
-Examples:
-  ptodo done 1                  # Mark task #1 as complete
-Note: Task numbers are shown when listing tasks with 'ptodo list'
-""",
-    )
-    done_parser.add_argument(
-        "task_number", type=int, help="Task number to mark as done"
-    )
+    config_subparsers.add_parser("show", help="Show all configuration")
 
-    # pri command
-    pri_parser = subparsers.add_parser(
-        "pri",
-        help="Set task priority",
-        description="Set or change the priority of a task",
-        epilog="""
-Examples:
-  ptodo pri 2 A                 # Set task #2 to priority A
-  ptodo pri 3 C                 # Set task #3 to priority C
-Note: Priorities range from A (highest) to Z (lowest)
-""",
+    config_get_parser = config_subparsers.add_parser(
+        "get", help="Get a configuration value"
     )
-    pri_parser.add_argument("task_number", type=int, help="Task number to prioritize")
-    pri_parser.add_argument("priority", help="Priority (A-Z)")
+    config_get_parser.add_argument("key", help="Configuration key")
 
-    # archive command
-    subparsers.add_parser(
-        "archive",
-        help="Move completed tasks to done.txt",
-        description="Move all completed tasks from todo.txt to done.txt",
-        epilog="""
-Examples:
-  ptodo archive                 # Move all completed tasks to done.txt
-Note: This is useful for cleaning up your todo.txt file after completing tasks
-""",
+    config_set_parser = config_subparsers.add_parser(
+        "set", help="Set a configuration value"
     )
+    config_set_parser.add_argument("key", help="Configuration key")
+    config_set_parser.add_argument("value", help="Configuration value")
 
-    # projects command
-    subparsers.add_parser(
-        "projects",
-        help="List all projects",
-        description="List all projects (+project) found in your tasks",
-        epilog="""
-Examples:
-  ptodo projects                # List all projects in todo.txt
-Note: Projects in todo.txt format are words prefixed with '+' like +home
-""",
-    )
+    config_subparsers.add_parser("reset", help="Reset configuration to defaults")
 
-    # contexts command
-    subparsers.add_parser(
-        "contexts",
-        help="List all contexts",
-        description="List all contexts (@context) found in your tasks",
-        epilog="""
-Examples:
-  ptodo contexts                # List all contexts in todo.txt
-Note: Contexts in todo.txt format are words prefixed with '@' like @phone
-""",
-    )
+    # Parse arguments
+    parsed_args = parser.parse_args(args)
 
-    args = parser.parse_args()
-
-    # Dispatch to the appropriate handler
-    if args.command == "list":
-        cmd_list(args)
-    elif args.command == "add":
-        cmd_add(args)
-    elif args.command == "done":
-        cmd_done(args)
-    elif args.command == "pri":
-        cmd_pri(args)
-    elif args.command == "archive":
-        cmd_archive(args)
-    elif args.command == "projects":
-        cmd_projects(args)
-    elif args.command == "contexts":
-        cmd_contexts(args)
+    # Dispatch to the appropriate command
+    if parsed_args.command == "list":
+        return cmd_list(parsed_args)
+    elif parsed_args.command == "add":
+        return cmd_add(parsed_args)
+    elif parsed_args.command == "done":
+        return cmd_done(parsed_args)
+    elif parsed_args.command == "pri":
+        return cmd_pri(parsed_args)
+    elif parsed_args.command == "show":
+        return cmd_show(parsed_args)
+    elif parsed_args.command == "projects":
+        return cmd_projects(parsed_args)
+    elif parsed_args.command == "contexts":
+        return cmd_contexts(parsed_args)
+    elif parsed_args.command == "archive":
+        return cmd_archive(parsed_args)
+    elif parsed_args.command == "git-init":
+        return cmd_git_init(parsed_args)
+    elif parsed_args.command == "git-remote":
+        return cmd_git_remote(parsed_args)
+    elif parsed_args.command == "git-sync":
+        return cmd_git_sync(parsed_args)
+    elif parsed_args.command == "config":
+        return cmd_config(parsed_args)
     else:
         parser.print_help()
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
