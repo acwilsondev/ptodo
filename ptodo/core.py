@@ -3,10 +3,10 @@ import os
 import sys
 from pathlib import Path
 
-from .serda import Task, parse_task, serialize_task
-from .git_service import GitService
-from .utils import get_ptodo_directory
 from .config import get_config
+from .git_service import GitService
+from .serda import Task, parse_task, serialize_task
+from .utils import get_ptodo_directory
 
 
 def get_todo_file_path() -> Path:
@@ -98,4 +98,3 @@ def write_tasks(
     # Auto-sync changes if git is configured
     if git_service and git_service.is_repo():
         git_service.sync(file_path, f"Update {file_path.name}")
-

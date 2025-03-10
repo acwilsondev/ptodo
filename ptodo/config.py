@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Any, Dict, Optional
+
 import yaml
 
 from ptodo.utils import get_ptodo_directory

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import os
 import subprocess
 from pathlib import Path
 from typing import Optional
@@ -45,11 +44,11 @@ class GitService:
 
         try:
             subprocess.run(
-                ["git", "init"], 
+                ["git", "init"],
                 cwd=self.repo_dir,
                 check=True,
                 capture_output=True,
-                text=True
+                text=True,
             )
             print(f"Initialized git repository at {self.repo_dir}")
             return True
@@ -75,34 +74,34 @@ class GitService:
         try:
             # Check if remote already exists
             result = subprocess.run(
-                ["git", "remote"], 
+                ["git", "remote"],
                 cwd=self.repo_dir,
                 check=True,
                 capture_output=True,
-                text=True
+                text=True,
             )
-            
+
             if name in result.stdout.split():
                 # Update existing remote
                 subprocess.run(
-                    ["git", "remote", "set-url", name, url], 
+                    ["git", "remote", "set-url", name, url],
                     cwd=self.repo_dir,
                     check=True,
                     capture_output=True,
-                    text=True
+                    text=True,
                 )
                 print(f"Updated remote '{name}' to {url}")
             else:
                 # Add new remote
                 subprocess.run(
-                    ["git", "remote", "add", name, url], 
+                    ["git", "remote", "add", name, url],
                     cwd=self.repo_dir,
                     check=True,
                     capture_output=True,
-                    text=True
+                    text=True,
                 )
                 print(f"Added remote '{name}' at {url}")
-            
+
             return True
         except subprocess.CalledProcessError as e:
             print(f"Failed to add remote: {e.stderr}")
@@ -120,11 +119,11 @@ class GitService:
 
         try:
             result = subprocess.run(
-                ["git", "remote"], 
+                ["git", "remote"],
                 cwd=self.repo_dir,
                 check=True,
                 capture_output=True,
-                text=True
+                text=True,
             )
             return bool(result.stdout.strip())
         except subprocess.CalledProcessError:
@@ -146,19 +145,19 @@ class GitService:
         try:
             if file_path:
                 subprocess.run(
-                    ["git", "add", str(file_path)], 
+                    ["git", "add", str(file_path)],
                     cwd=self.repo_dir,
                     check=True,
                     capture_output=True,
-                    text=True
+                    text=True,
                 )
             else:
                 subprocess.run(
-                    ["git", "add", "."], 
+                    ["git", "add", "."],
                     cwd=self.repo_dir,
                     check=True,
                     capture_output=True,
-                    text=True
+                    text=True,
                 )
             return True
         except subprocess.CalledProcessError:
@@ -179,11 +178,11 @@ class GitService:
 
         try:
             subprocess.run(
-                ["git", "commit", "-m", message], 
+                ["git", "commit", "-m", message],
                 cwd=self.repo_dir,
                 check=True,
                 capture_output=True,
-                text=True
+                text=True,
             )
             return True
         except subprocess.CalledProcessError:
@@ -202,11 +201,11 @@ class GitService:
 
         try:
             subprocess.run(
-                ["git", "pull"], 
+                ["git", "pull"],
                 cwd=self.repo_dir,
                 check=True,
                 capture_output=True,
-                text=True
+                text=True,
             )
             return True
         except subprocess.CalledProcessError:
@@ -224,17 +223,21 @@ class GitService:
 
         try:
             subprocess.run(
-                ["git", "push"], 
+                ["git", "push"],
                 cwd=self.repo_dir,
                 check=True,
                 capture_output=True,
-                text=True
+                text=True,
             )
             return True
         except subprocess.CalledProcessError:
             return False
 
-    def sync(self, file_path: Optional[Path] = None, commit_message: str = "Auto-sync changes") -> bool:
+    def sync(
+        self,
+        file_path: Optional[Path] = None,
+        commit_message: str = "Auto-sync changes",
+    ) -> bool:
         """
         Sync changes with remote repository (pull, add, commit, push).
 
@@ -257,22 +260,21 @@ class GitService:
 
         # Check if there are changes to commit
         status = subprocess.run(
-            ["git", "status", "--porcelain"], 
+            ["git", "status", "--porcelain"],
             cwd=self.repo_dir,
             check=True,
             capture_output=True,
-            text=True
+            text=True,
         )
 
         if status.stdout.strip():
             # Commit changes
             self.commit(commit_message)
-            
+
             # Push if we have a remote
             if self.has_remote():
                 self.push()
-                
-            return True
-        
-        return False  # No changes to commit
 
+            return True
+
+        return False  # No changes to commit

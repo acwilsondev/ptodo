@@ -50,4 +50,3 @@ def cmd_git_sync(_: argparse.Namespace) -> None:
         print("Successfully synced changes with remote repository.")
     else:
         print("No changes to sync or sync failed.")
-

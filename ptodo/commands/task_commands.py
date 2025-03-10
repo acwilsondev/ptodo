@@ -2,9 +2,10 @@
 import argparse
 from datetime import date
 
-from ..serda import Task, serialize_task
-from ..git_service import GitService
 from ..core import get_todo_file_path, read_tasks, write_tasks
+from ..git_service import GitService
+from ..serda import Task, serialize_task
+
 
 def cmd_list(args: argparse.Namespace) -> None:
     """
@@ -21,7 +22,7 @@ def cmd_list(args: argparse.Namespace) -> None:
     BLUE = "\033[34m"
     CYAN = "\033[36m"
     GRAY = "\033[90m"
-    RED = "\033[31m"
+    # RED = "\033[31m"
     MAGENTA = "\033[35m"
 
     todo_file = get_todo_file_path()
@@ -116,8 +117,8 @@ def cmd_add(args: argparse.Namespace) -> None:
     # Create a new task
     task = Task(
         description=args.text,
-        priority=getattr(args, 'priority', None),
-        creation_date=date.today() if getattr(args, 'date', False) else None,
+        priority=getattr(args, "priority", None),
+        creation_date=date.today() if getattr(args, "date", False) else None,
     )
 
     tasks.append(task)
@@ -223,4 +224,3 @@ def cmd_show(args: argparse.Namespace) -> None:
         print(f"\nRaw format: {serialize_task(task)}")
     else:
         print(f"Error: Task number {args.task_id} out of range (1-{len(tasks)}).")
-

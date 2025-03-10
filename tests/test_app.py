@@ -1,8 +1,8 @@
 import os
 import shutil
 import tempfile
-from unittest.mock import patch
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -70,7 +70,7 @@ class TestApp:
         if not os.path.exists(todo_file):
             with open(todo_file, "w") as f:
                 pass  # Create an empty file
-                
+
         # Set environment variable to use our test file
         os.environ["TODO_FILE"] = todo_file
         mock_argv.__getitem__.side_effect = lambda idx: [
