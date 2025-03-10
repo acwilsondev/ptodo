@@ -270,6 +270,7 @@ make help
 | `make install` | Install the package |
 | `make uninstall` | Uninstall the package |
 | `make lint` | Run linting checks (flake8, isort, black) |
+| `make check` | Run both linting and tests to verify code quality |
 | `make clean` | Clean up build artifacts |
 | `make help` | Show help message with all available commands |
 

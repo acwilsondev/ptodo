@@ -1,4 +1,4 @@
-.PHONY: setup test build check install clean help
+.PHONY: setup test build check install clean help typecheck
 
 # Define Python and pip executables
 PYTHON := python3
@@ -27,11 +27,15 @@ format: ## Format code using black and isort
 	isort --profile black $(PKG_NAME) tests
 	black $(PKG_NAME) tests
 
+typecheck: ## Run type checking with mypy
+	mypy $(PKG_NAME) tests
+
 build: clean ## Build the package
 	$(PYTHON) -m build
 
-check: ## Run both linting and tests to verify code quality
+check: ## Run linting, type checking, and tests to verify code quality
 	$(MAKE) lint
+	$(MAKE) typecheck
 	$(MAKE) test
 
 install: build ## Install the package
