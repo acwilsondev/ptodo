@@ -7,7 +7,7 @@ from ..git_service import GitService
 from ..serda import Task, serialize_task
 
 
-def cmd_list(args: argparse.Namespace) -> None:
+def cmd_list(args: argparse.Namespace) -> int:
     """
     List tasks from the todo.txt file.
 
@@ -50,7 +50,7 @@ def cmd_list(args: argparse.Namespace) -> None:
     # Print tasks
     if not indexed_tasks:
         print("No matching tasks found.")
-        return
+        return 0
     for idx, (original_idx, task) in enumerate(indexed_tasks, 0):
         # Format basic task information using the original (1-based) index
         task_num = f"{BOLD}[Task {original_idx + 1}]{RESET}"
@@ -101,9 +101,10 @@ def cmd_list(args: argparse.Namespace) -> None:
         f"{GRAY}Note: You can use task numbers with commands like 'done' and 'pri'.{RESET}"
     )
     print(f"{GRAY}      For example: 'ptodo done 3' or 'ptodo pri 2 A'{RESET}")
+    return 0
 
 
-def cmd_add(args: argparse.Namespace) -> None:
+def cmd_add(args: argparse.Namespace) -> int:
     """
     Add a new task to the todo.txt file.
 
@@ -124,9 +125,10 @@ def cmd_add(args: argparse.Namespace) -> None:
     tasks.append(task)
     write_tasks(tasks, todo_file, git_service)
     print(f"Added: {serialize_task(task)}")
+    return 0
 
 
-def cmd_done(args: argparse.Namespace) -> None:
+def cmd_done(args: argparse.Namespace) -> int:
     """
     Mark a task as done.
 
@@ -139,19 +141,20 @@ def cmd_done(args: argparse.Namespace) -> None:
 
     if not tasks:
         print("No tasks found.")
-        return
+        return 1
 
     if 1 <= args.task_id <= len(tasks):
         task = tasks[args.task_id - 1]
         task.complete()
-
         write_tasks(tasks, todo_file, git_service)
         print(f"Completed: {serialize_task(task)}")
+        return 0
     else:
         print(f"Error: Task number {args.task_id} out of range (1-{len(tasks)}).")
+        return 1
 
 
-def cmd_pri(args: argparse.Namespace) -> None:
+def cmd_pri(args: argparse.Namespace) -> int:
     """
     Set the priority of a task.
 
@@ -164,20 +167,21 @@ def cmd_pri(args: argparse.Namespace) -> None:
 
     if not tasks:
         print("No tasks found.")
-        return
+        return 1
 
     if 1 <= args.task_id <= len(tasks):
         task = tasks[args.task_id - 1]
         original = serialize_task(task)
         task.priority = args.priority
-
         write_tasks(tasks, todo_file, git_service)
         print(f"Updated: {original} → {serialize_task(task)}")
+        return 0
     else:
         print(f"Error: Task number {args.task_id} out of range (1-{len(tasks)}).")
+        return 1
 
 
-def cmd_show(args: argparse.Namespace) -> None:
+def cmd_show(args: argparse.Namespace) -> int:
     """
     Show detailed information for a specific task.
 
@@ -190,7 +194,7 @@ def cmd_show(args: argparse.Namespace) -> None:
 
     if not tasks:
         print("No tasks found.")
-        return
+        return 1
 
     if 1 <= args.task_id <= len(tasks):
         task = tasks[args.task_id - 1]
@@ -222,5 +226,7 @@ def cmd_show(args: argparse.Namespace) -> None:
                 print(f"    {key}: {value}")
 
         print(f"\nRaw format: {serialize_task(task)}")
+        return 0
     else:
         print(f"Error: Task number {args.task_id} out of range (1-{len(tasks)}).")
+        return 1

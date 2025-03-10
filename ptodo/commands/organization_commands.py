@@ -10,7 +10,7 @@ from ..core import (
 from ..git_service import GitService
 
 
-def cmd_archive(_: argparse.Namespace) -> None:
+def cmd_archive(_: argparse.Namespace) -> int:
     """
     Move completed tasks to the done.txt file.
 
@@ -30,7 +30,7 @@ def cmd_archive(_: argparse.Namespace) -> None:
 
     if not completed_tasks:
         print("No completed tasks to archive.")
-        return
+        return 0
 
     # Add completed tasks to done.txt
     done_tasks.extend(completed_tasks)
@@ -40,9 +40,10 @@ def cmd_archive(_: argparse.Namespace) -> None:
     write_tasks(incomplete_tasks, todo_file, git_service)
 
     print(f"Archived {len(completed_tasks)} completed task(s).")
+    return 0
 
 
-def cmd_projects(_: argparse.Namespace) -> None:
+def cmd_projects(_: argparse.Namespace) -> int:
     """
     List all projects in the todo.txt file.
 
@@ -61,14 +62,15 @@ def cmd_projects(_: argparse.Namespace) -> None:
     # Print projects
     if not all_projects:
         print("No projects found.")
-        return
+        return 0
 
     print("Projects:")
     for project in sorted(all_projects):
         print(f"  {project}")
+    return 0
 
 
-def cmd_contexts(_: argparse.Namespace) -> None:
+def cmd_contexts(_: argparse.Namespace) -> int:
     """
     List all contexts in the todo.txt file.
 
@@ -87,8 +89,9 @@ def cmd_contexts(_: argparse.Namespace) -> None:
     # Print contexts
     if not all_contexts:
         print("No contexts found.")
-        return
+        return 0
 
     print("Contexts:")
     for context in sorted(all_contexts):
         print(f"  {context}")
+    return 0

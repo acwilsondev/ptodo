@@ -105,29 +105,29 @@ def main(args: Optional[List[str]] = None) -> int:
 
     # Dispatch to the appropriate command
     if parsed_args.command == "list":
-        return cmd_list(parsed_args)
+        return int(cmd_list(parsed_args))
     elif parsed_args.command == "add":
-        return cmd_add(parsed_args)
+        return int(cmd_add(parsed_args))
     elif parsed_args.command == "done":
-        return cmd_done(parsed_args)
+        return int(cmd_done(parsed_args))
     elif parsed_args.command == "pri":
-        return cmd_pri(parsed_args)
+        return int(cmd_pri(parsed_args))
     elif parsed_args.command == "show":
-        return cmd_show(parsed_args)
+        return int(cmd_show(parsed_args))
     elif parsed_args.command == "projects":
-        return cmd_projects(parsed_args)
+        return int(cmd_projects(parsed_args))
     elif parsed_args.command == "contexts":
-        return cmd_contexts(parsed_args)
+        return int(cmd_contexts(parsed_args))
     elif parsed_args.command == "archive":
-        return cmd_archive(parsed_args)
+        return int(cmd_archive(parsed_args))
     elif parsed_args.command == "git-init":
-        return cmd_git_init(parsed_args)
+        return int(cmd_git_init(parsed_args))
     elif parsed_args.command == "git-remote":
-        return cmd_git_remote(parsed_args)
+        return int(cmd_git_remote(parsed_args))
     elif parsed_args.command == "git-sync":
-        return cmd_git_sync(parsed_args)
+        return int(cmd_git_sync(parsed_args))
     elif parsed_args.command == "config":
-        return cmd_config(parsed_args)
+        return int(cmd_config(parsed_args))
     else:
         parser.print_help()
         return 1
