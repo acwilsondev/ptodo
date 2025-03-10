@@ -38,7 +38,7 @@ class TestApp:
         return done_file
 
     @patch("sys.argv")
-    @patch("ptodo.app.get_todo_file_path")
+    @patch("ptodo.core.get_todo_file_path")
     def test_list_command(self, mock_get_path, mock_argv, todo_file, capsys):
         """Test the list command."""
         mock_get_path.return_value = Path(todo_file)
@@ -54,7 +54,7 @@ class TestApp:
         assert "(B)" in captured.out
 
     @patch("sys.argv")
-    @patch("ptodo.app.get_todo_file_path")
+    @patch("ptodo.core.get_todo_file_path")
     def test_add_command(self, mock_get_path, mock_argv, temp_dir, capsys):
         """Test the add command."""
         todo_file = os.path.join(temp_dir, "todo.txt")
@@ -75,7 +75,7 @@ class TestApp:
         assert "Task added" in captured.out or "Added:" in captured.out
 
     @patch("sys.argv")
-    @patch("ptodo.app.get_todo_file_path")
+    @patch("ptodo.core.get_todo_file_path")
     def test_done_command(self, mock_get_path, mock_argv, todo_file, capsys):
         """Test the done command."""
         mock_get_path.return_value = Path(todo_file)
@@ -94,7 +94,7 @@ class TestApp:
         )
 
     @patch("sys.argv")
-    @patch("ptodo.app.get_todo_file_path")
+    @patch("ptodo.core.get_todo_file_path")
     def test_pri_command(self, mock_get_path, mock_argv, todo_file, capsys):
         """Test the pri (priority) command."""
         mock_get_path.return_value = Path(todo_file)
@@ -110,7 +110,7 @@ class TestApp:
         assert "updated" in captured.out.lower()
 
     @patch("sys.argv")
-    @patch("ptodo.app.get_todo_file_path")
+    @patch("ptodo.core.get_todo_file_path")
     def test_projects_command(self, mock_get_path, mock_argv, todo_file, capsys):
         """Test the projects command."""
         mock_get_path.return_value = Path(todo_file)
@@ -124,7 +124,7 @@ class TestApp:
         assert "Work" in captured.out
 
     @patch("sys.argv")
-    @patch("ptodo.app.get_todo_file_path")
+    @patch("ptodo.core.get_todo_file_path")
     def test_contexts_command(self, mock_get_path, mock_argv, todo_file, capsys):
         """Test the contexts command."""
         mock_get_path.return_value = Path(todo_file)
@@ -138,7 +138,7 @@ class TestApp:
         assert "Computer" in captured.out
 
     @patch("sys.argv")
-    @patch("ptodo.app.get_todo_file_path")
+    @patch("ptodo.core.get_todo_file_path")
     def test_archive_command(
         self, mock_get_path, mock_argv, todo_file, done_file, capsys
     ):
@@ -151,7 +151,7 @@ class TestApp:
         # Then archive completed tasks
         mock_get_path.return_value = Path(todo_file)
         mock_argv.__getitem__.side_effect = lambda idx: ["ptodo", "archive"][idx]
-        with patch("ptodo.app.get_done_file_path", return_value=Path(done_file)):
+        with patch("ptodo.core.get_done_file_path", return_value=Path(done_file)):
             main()
 
         captured = capsys.readouterr()
