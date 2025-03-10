@@ -13,7 +13,8 @@ DEFAULT_CONFIG = {
     "default_priority": "C",
     "show_colors": True,
     "date_format": "%Y-%m-%d",
-    "auto_save": True,
+    "auto_commit": True,
+    "auto_sync": True,
 }
 
 CONFIG_FILENAME = "config.yaml"

@@ -237,6 +237,8 @@ class GitService:
         self,
         file_path: Optional[Path] = None,
         commit_message: str = "Auto-sync changes",
+        auto_commit: bool = True,
+        auto_sync: bool = True,
     ) -> bool:
         """
         Sync changes with remote repository (pull, add, commit, push).
@@ -244,6 +246,8 @@ class GitService:
         Args:
             file_path: Path to the file to sync. If None, syncs all changes.
             commit_message: Message for the commit.
+            auto_commit: Whether to automatically commit changes. Defaults to True.
+            auto_sync: Whether to automatically push changes. Defaults to True.
 
         Returns:
             bool: True if successful, False otherwise.
@@ -267,12 +271,12 @@ class GitService:
             text=True,
         )
 
-        if status.stdout.strip():
+        if status.stdout.strip() and auto_commit:
             # Commit changes
             self.commit(commit_message)
 
-            # Push if we have a remote
-            if self.has_remote():
+            # Push if we have a remote and auto_sync is enabled
+            if self.has_remote() and auto_sync:
                 self.push()
 
             return True

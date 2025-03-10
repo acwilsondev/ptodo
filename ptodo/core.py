@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -95,6 +96,28 @@ def write_tasks(
         for task in tasks:
             f.write(serialize_task(task) + "\n")
 
-    # Auto-sync changes if git is configured
+    # Handle git operations based on config settings
     if git_service and git_service.is_repo():
-        git_service.sync(file_path, f"Update {file_path.name}")
+        auto_commit = get_config("auto_commit", True)
+        auto_sync = get_config("auto_sync", True)
+        
+        if auto_commit:
+            # Stage changes
+            git_service.stage_changes(file_path)
+            
+            # Check if there are changes to commit
+            status = subprocess.run(
+                ["git", "status", "--porcelain"],
+                cwd=git_service.repo_dir,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            
+            if status.stdout.strip():
+                # Commit changes
+                git_service.commit(f"Update {file_path.name}")
+                
+                # Push if auto_sync is enabled and we have a remote
+                if auto_sync and git_service.has_remote():
+                    git_service.push()
