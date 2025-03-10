@@ -43,6 +43,12 @@ def main(args: Optional[List[str]] = None) -> int:
     list_parser.add_argument("--project", "-p", help="Filter by project")
     list_parser.add_argument("--context", "-@", help="Filter by context")
     list_parser.add_argument("--priority", help="Filter by priority (A-Z)")
+    list_parser.add_argument(
+        "--top",
+        "-t",
+        type=int,
+        help="Limit display to the top N tasks after filtering",
+    )
 
     # Add command
     add_parser = subparsers.add_parser("add", help="Add a task")

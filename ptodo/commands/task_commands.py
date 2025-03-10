@@ -51,9 +51,14 @@ def cmd_list(args: argparse.Namespace) -> int:
     if not indexed_tasks:
         print("No matching tasks found.")
         return 0
+
+    # Limit to top N tasks if specified
+    if hasattr(args, 'top') and args.top is not None and args.top > 0:
+        indexed_tasks = indexed_tasks[:args.top]
+
     for idx, (original_idx, task) in enumerate(indexed_tasks, 0):
         # Format basic task information using the original (1-based) index
-        task_num = f"{BOLD}[Task {original_idx + 1}]{RESET}"
+        task_num = f"{BOLD}[{original_idx + 1}]{RESET}"
         priority_str = f"{YELLOW}({task.priority}){RESET} " if task.priority else ""
         completion_str = f"{GREEN}x{RESET} " if task.completed else ""
         completion_date_str = (
