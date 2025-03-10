@@ -111,6 +111,17 @@ def cmd_list(args: argparse.Namespace) -> None:
     Args:
         args: Command-line arguments
     """
+    # ANSI color codes for formatting
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    BLUE = "\033[34m"
+    CYAN = "\033[36m"
+    GRAY = "\033[90m"
+    RED = "\033[31m"
+    MAGENTA = "\033[35m"
+    
     todo_file = get_todo_file_path()
     git_service = GitService(todo_file.parent)
     tasks = read_tasks(todo_file, git_service)
@@ -134,19 +145,45 @@ def cmd_list(args: argparse.Namespace) -> None:
         return
 
     for i, task in enumerate(tasks, 1):
-        priority_str = f"({task.priority}) " if task.priority else ""
-        completion_str = "x " if task.completed else ""
-        completion_date_str = f"{task.completion_date} " if task.completion_date else ""
-        creation_date_str = f"{task.creation_date} " if task.creation_date else ""
-
-        print(
-            f"[Task {i}] {completion_str}{priority_str}{completion_date_str}"
+        # Format basic task information
+        task_num = f"{BOLD}[Task {i}]{RESET}"
+        priority_str = f"{YELLOW}({task.priority}){RESET} " if task.priority else ""
+        completion_str = f"{GREEN}x{RESET} " if task.completed else ""
+        completion_date_str = f"{GRAY}{task.completion_date}{RESET} " if task.completion_date else ""
+        creation_date_str = f"{GRAY}{task.creation_date}{RESET} " if task.creation_date else ""
+        
+        # Format the main task line with basic information
+        main_line = (
+            f"{task_num} {completion_str}{priority_str}{completion_date_str}"
             f"{creation_date_str}{task.description}"
         )
+        print(main_line)
+        
+        # Format additional information in indented blocks
+        indent = "    "
+        
+        # Show projects if any
+        if task.projects:
+            project_list = " ".join([f"{BLUE}+{project}{RESET}" for project in sorted(task.projects)])
+            print(f"{indent}Projects: {project_list}")
+            
+        # Show contexts if any
+        if task.contexts:
+            context_list = " ".join([f"{CYAN}@{context}{RESET}" for context in sorted(task.contexts)])
+            print(f"{indent}Contexts: {context_list}")
+            
+        # Show metadata if any
+        if task.metadata:
+            print(f"{indent}Metadata:")
+            for key, value in sorted(task.metadata.items()):
+                print(f"{indent}  {MAGENTA}{key}{RESET}: {value}")
+                
+        # Add a separator line between tasks for better readability
+        print("")
 
     # Add a helpful note about task numbers
-    print("\nNote: You can use task numbers with commands like 'done' and 'pri'.")
-    print("      For example: 'ptodo done 3' or 'ptodo pri 2 A'")
+    print(f"{GRAY}Note: You can use task numbers with commands like 'done' and 'pri'.{RESET}")
+    print(f"{GRAY}      For example: 'ptodo done 3' or 'ptodo pri 2 A'{RESET}")
 
 
 def cmd_add(args: argparse.Namespace) -> None:
