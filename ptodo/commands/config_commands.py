@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 import argparse
 
-
 from ..config import (
-    load_config,
+    DEFAULT_CONFIG,
     get_config,
+    load_config,
     set_config,
     update_config,
-    DEFAULT_CONFIG,
 )
 
 
@@ -16,17 +15,17 @@ def cmd_config(args: argparse.Namespace) -> None:
     Handle configuration settings - show, get, set, or reset.
 
     Args:
-        args: Command-line arguments with action (show, get, set, reset)
+        args: Command-line arguments with config_command (show, get, set, reset)
               and any other required parameters
     """
-    if args.action == "show":
+    if args.config_command == "show":
         # Show all configuration settings
         config = load_config()
         print("Current configuration settings:")
         for key, value in sorted(config.items()):
             print(f"  {key}: {value}")
 
-    elif args.action == "get":
+    elif args.config_command == "get":
         # Get a specific configuration setting
         key = args.key
         value = get_config(key)
@@ -35,7 +34,7 @@ def cmd_config(args: argparse.Namespace) -> None:
         else:
             print(f"No configuration setting found for '{key}'")
 
-    elif args.action == "set":
+    elif args.config_command == "set":
         # Set a specific configuration setting
         key = args.key
         value = args.value
@@ -55,7 +54,7 @@ def cmd_config(args: argparse.Namespace) -> None:
         set_config(key, value)
         print(f"Configuration setting '{key}' has been set to '{value}'")
 
-    elif args.action == "reset":
+    elif args.config_command == "reset":
         # Reset all configuration settings to defaults
         update_config(DEFAULT_CONFIG)
         print("Configuration has been reset to default values:")

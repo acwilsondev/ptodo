@@ -1,4 +1,4 @@
-.PHONY: setup test build install clean help
+.PHONY: setup test build check install clean help
 
 # Define Python and pip executables
 PYTHON := python3
@@ -30,6 +30,10 @@ format: ## Format code using black and isort
 build: clean ## Build the package
 	$(PYTHON) -m build
 
+check: ## Run both linting and tests to verify code quality
+	$(MAKE) lint
+	$(MAKE) test
+
 install: build ## Install the package
 	$(PIP) install .
 
@@ -55,4 +59,5 @@ help: ## Show this help message
 	@echo ""
 	@echo "Targets:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
+
 
