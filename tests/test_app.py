@@ -2,9 +2,11 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
-from unittest.mock import patch
+from typing import Generator
+from unittest.mock import MagicMock, patch
 
 import pytest
+from _pytest.capture import CaptureFixture
 
 from ptodo.app import main
 
@@ -13,14 +15,14 @@ class TestApp:
     """Tests for the command-line functionality of ptodo."""
 
     @pytest.fixture
-    def temp_dir(self):
+    def temp_dir(self) -> Generator[str, None, None]:
         """Create a temporary directory for todo.txt files."""
         temp_dir = tempfile.mkdtemp()
         yield temp_dir
         shutil.rmtree(temp_dir)
 
     @pytest.fixture
-    def todo_file(self, temp_dir):
+    def todo_file(self, temp_dir: str) -> Generator[str, None, None]:
         """Create a test todo.txt file."""
         todo_file = os.path.join(temp_dir, "todo.txt")
         with open(todo_file, "w") as f:
@@ -35,7 +37,7 @@ class TestApp:
             del os.environ["TODO_FILE"]
 
     @pytest.fixture
-    def done_file(self, temp_dir):
+    def done_file(self, temp_dir: str) -> Generator[str, None, None]:
         """Create a test done.txt file."""
         done_file = os.path.join(temp_dir, "done.txt")
         with open(done_file, "w") as f:
@@ -49,7 +51,13 @@ class TestApp:
 
     @patch("sys.argv")
     @patch("ptodo.core.get_todo_file_path")
-    def test_list_command(self, mock_get_path, mock_argv, todo_file, capsys):
+    def test_list_command(
+        self,
+        mock_get_path: MagicMock,
+        mock_argv: MagicMock,
+        todo_file: str,
+        capsys: CaptureFixture[str],
+    ) -> None:
         """Test the list command."""
         mock_get_path.return_value = Path(todo_file)
         mock_argv.__getitem__.side_effect = lambda idx: ["ptodo", "list"][idx]
@@ -63,7 +71,9 @@ class TestApp:
         assert "(A)" in captured.out
 
     @patch("sys.argv")
-    def test_add_command(self, mock_argv, temp_dir, capsys):
+    def test_add_command(
+        self, mock_argv: MagicMock, temp_dir: str, capsys: CaptureFixture[str]
+    ) -> None:
         """Test the add command."""
         todo_file = os.path.join(temp_dir, "todo.txt")
         # Create an empty todo.txt file if it doesn't exist
@@ -94,7 +104,13 @@ class TestApp:
 
     @patch("sys.argv")
     @patch("ptodo.core.get_todo_file_path")
-    def test_done_command(self, mock_get_path, mock_argv, todo_file, capsys):
+    def test_done_command(
+        self,
+        mock_get_path: MagicMock,
+        mock_argv: MagicMock,
+        todo_file: str,
+        capsys: CaptureFixture[str],
+    ) -> None:
         """Test the done command."""
         mock_get_path.return_value = Path(todo_file)
         mock_argv.__getitem__.side_effect = lambda idx: ["ptodo", "done", "1"][idx]
@@ -113,7 +129,13 @@ class TestApp:
 
     @patch("sys.argv")
     @patch("ptodo.core.get_todo_file_path")
-    def test_pri_command(self, mock_get_path, mock_argv, todo_file, capsys):
+    def test_pri_command(
+        self,
+        mock_get_path: MagicMock,
+        mock_argv: MagicMock,
+        todo_file: str,
+        capsys: CaptureFixture[str],
+    ) -> None:
         """Test the pri (priority) command."""
         mock_get_path.return_value = Path(todo_file)
         mock_argv.__getitem__.side_effect = lambda idx: ["ptodo", "pri", "3", "A"][idx]
@@ -129,7 +151,13 @@ class TestApp:
 
     @patch("sys.argv")
     @patch("ptodo.core.get_todo_file_path")
-    def test_projects_command(self, mock_get_path, mock_argv, todo_file, capsys):
+    def test_projects_command(
+        self,
+        mock_get_path: MagicMock,
+        mock_argv: MagicMock,
+        todo_file: str,
+        capsys: CaptureFixture[str],
+    ) -> None:
         """Test the projects command."""
         mock_get_path.return_value = Path(todo_file)
         mock_argv.__getitem__.side_effect = lambda idx: ["ptodo", "projects"][idx]
@@ -141,7 +169,13 @@ class TestApp:
 
     @patch("sys.argv")
     @patch("ptodo.core.get_todo_file_path")
-    def test_contexts_command(self, mock_get_path, mock_argv, todo_file, capsys):
+    def test_contexts_command(
+        self,
+        mock_get_path: MagicMock,
+        mock_argv: MagicMock,
+        todo_file: str,
+        capsys: CaptureFixture[str],
+    ) -> None:
         """Test the contexts command."""
         mock_get_path.return_value = Path(todo_file)
         mock_argv.__getitem__.side_effect = lambda idx: ["ptodo", "contexts"][idx]
@@ -154,8 +188,13 @@ class TestApp:
     @patch("sys.argv")
     @patch("ptodo.core.get_todo_file_path")
     def test_archive_command(
-        self, mock_get_path, mock_argv, todo_file, done_file, capsys
-    ):
+        self,
+        mock_get_path: MagicMock,
+        mock_argv: MagicMock,
+        todo_file: str,
+        done_file: str,
+        capsys: CaptureFixture[str],
+    ) -> None:
         """Test the archive command."""
         # First mark a task as done
         mock_get_path.return_value = Path(todo_file)
@@ -180,7 +219,9 @@ class TestApp:
         assert "archived" in captured.out.lower() or "moved" in captured.out.lower()
 
     @patch("sys.argv")
-    def test_help_command(self, mock_argv, capsys):
+    def test_help_command(
+        self, mock_argv: MagicMock, capsys: CaptureFixture[str]
+    ) -> None:
         """Test the help command."""
         mock_argv.__getitem__.side_effect = lambda idx: ["ptodo", "--help"][idx]
 

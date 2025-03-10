@@ -184,9 +184,9 @@ def create_task(
     description: str,
     priority: str | None = None,
     add_creation_date: bool = True,
-    projects: list[str] = None,
-    contexts: list[str] = None,
-    metadata: dict[str, str] = None,
+    projects: list[str] | None = None,
+    contexts: list[str] | None = None,
+    metadata: dict[str, str] | None = None,
 ) -> Task:
     """Create a new task with the given parameters."""
     task = Task(

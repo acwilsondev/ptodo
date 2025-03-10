@@ -2,14 +2,17 @@ import os
 import tempfile
 from datetime import date
 from pathlib import Path
+from typing import Callable, Generator, List
 
 import pytest
+from _pytest.config import Config
+from _pytest.monkeypatch import MonkeyPatch
 
 from ptodo.serda import Task
 
 
 @pytest.fixture
-def temp_todo_file():
+def temp_todo_file() -> Generator[Path, None, None]:
     """Create a temporary todo.txt file for testing."""
     fd, path = tempfile.mkstemp(suffix=".txt")
     os.close(fd)
@@ -20,7 +23,7 @@ def temp_todo_file():
 
 
 @pytest.fixture
-def temp_done_file():
+def temp_done_file() -> Generator[Path, None, None]:
     """Create a temporary done.txt file for testing."""
     fd, path = tempfile.mkstemp(suffix=".txt")
     os.close(fd)
@@ -31,14 +34,14 @@ def temp_done_file():
 
 
 @pytest.fixture
-def temp_dir():
+def temp_dir() -> Generator[Path, None, None]:
     """Create a temporary directory for testing."""
     with tempfile.TemporaryDirectory() as tmp_dir:
         yield Path(tmp_dir)
 
 
 @pytest.fixture
-def sample_tasks():
+def sample_tasks() -> List[Task]:
     """Return a list of sample Task objects for testing."""
     return [
         Task(description="Buy milk", priority="A"),
@@ -55,7 +58,7 @@ def sample_tasks():
 
 
 @pytest.fixture
-def populated_todo_file(temp_todo_file, sample_tasks):
+def populated_todo_file(temp_todo_file: Path, sample_tasks: List[Task]) -> Path:
     """Create a todo.txt file populated with sample tasks."""
     with open(temp_todo_file, "w") as f:
         for task in sample_tasks:
@@ -65,7 +68,7 @@ def populated_todo_file(temp_todo_file, sample_tasks):
 
 
 @pytest.fixture
-def populated_done_file(temp_done_file, sample_tasks):
+def populated_done_file(temp_done_file: Path, sample_tasks: List[Task]) -> Path:
     """Create a done.txt file populated with completed sample tasks."""
     with open(temp_done_file, "w") as f:
         for task in sample_tasks:
@@ -75,16 +78,16 @@ def populated_done_file(temp_done_file, sample_tasks):
 
 
 @pytest.fixture
-def mock_user_input(monkeypatch):
+def mock_user_input(monkeypatch: MonkeyPatch) -> Callable[[List[str]], None]:
     """Mock user input for testing interactive features."""
-    inputs = []
+    inputs: List[str] = []
 
-    def mock_input(prompt=""):
+    def mock_input(prompt: str = "") -> str:
         if not inputs:
             return ""
         return inputs.pop(0)
 
-    def set_inputs(new_inputs):
+    def set_inputs(new_inputs: List[str]) -> None:
         nonlocal inputs
         inputs = new_inputs.copy()
 
@@ -93,6 +96,6 @@ def mock_user_input(monkeypatch):
 
 
 # Configure pytest to show more info on test failures
-def pytest_configure(config):
+def pytest_configure(config: Config) -> None:
     config.option.verbose = 2
     config.option.showlocals = True

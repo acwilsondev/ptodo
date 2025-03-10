@@ -10,7 +10,7 @@ from ptodo.serda import Task, parse_task, serialize_task  # noqa: E402
 
 
 class TestTask(unittest.TestCase):
-    def test_task_initialization(self):
+    def test_task_initialization(self) -> None:
         """Test that a Task object can be created with various properties."""
         task = Task(
             description="Buy milk",
@@ -30,7 +30,7 @@ class TestTask(unittest.TestCase):
         self.assertEqual(task.projects, {"grocery"})
         self.assertEqual(task.contexts, {"errands"})
 
-    def test_default_values(self):
+    def test_default_values(self) -> None:
         """Test that default values are set correctly."""
         task = Task(description="Simple task")
 
@@ -42,7 +42,7 @@ class TestTask(unittest.TestCase):
         self.assertEqual(task.projects, set())
         self.assertEqual(task.contexts, set())
 
-    def test_complete_task(self):
+    def test_complete_task(self) -> None:
         """Test marking a task as complete."""
         task = Task(description="Write tests")
         self.assertFalse(task.completed)
@@ -55,25 +55,25 @@ class TestTask(unittest.TestCase):
 
 
 class TestSerialization(unittest.TestCase):
-    def test_serialize_simple_task(self):
+    def test_serialize_simple_task(self) -> None:
         """Test serialization of a simple task."""
         task = Task(description="Simple task")
         serialized = serialize_task(task)
         self.assertEqual(serialized, "Simple task")
 
-    def test_serialize_task_with_priority(self):
+    def test_serialize_task_with_priority(self) -> None:
         """Test serialization of a task with priority."""
         task = Task(description="Task with priority", priority="A")
         serialized = serialize_task(task)
         self.assertEqual(serialized, "(A) Task with priority")
 
-    def test_serialize_task_with_dates(self):
+    def test_serialize_task_with_dates(self) -> None:
         """Test serialization of a task with creation date."""
         task = Task(description="Task with date", creation_date=date(2023, 1, 1))
         serialized = serialize_task(task)
         self.assertEqual(serialized, "2023-01-01 Task with date")
 
-    def test_serialize_completed_task(self):
+    def test_serialize_completed_task(self) -> None:
         """Test serialization of a completed task."""
         task = Task(
             description="Completed task",
@@ -83,7 +83,7 @@ class TestSerialization(unittest.TestCase):
         serialized = serialize_task(task)
         self.assertEqual(serialized, "x 2023-01-15 Completed task")
 
-    def test_serialize_task_with_projects_and_contexts(self):
+    def test_serialize_task_with_projects_and_contexts(self) -> None:
         """Test serialization of a task with projects and contexts."""
         task = Task(
             description="Task with metadata",
@@ -95,7 +95,7 @@ class TestSerialization(unittest.TestCase):
             serialized, "Task with metadata +report +work @computer @office"
         )
 
-    def test_serialize_complex_task(self):
+    def test_serialize_complex_task(self) -> None:
         """Test serialization of a complex task with all attributes."""
         task = Task(
             description="Complex task",
@@ -113,7 +113,7 @@ class TestSerialization(unittest.TestCase):
 
 
 class TestParsing(unittest.TestCase):
-    def test_parse_simple_task(self):
+    def test_parse_simple_task(self) -> None:
         """Test parsing of a simple task."""
         task_str = "Simple task"
         task = parse_task(task_str)
@@ -126,7 +126,7 @@ class TestParsing(unittest.TestCase):
         self.assertEqual(task.projects, set())
         self.assertEqual(task.contexts, set())
 
-    def test_parse_task_with_priority(self):
+    def test_parse_task_with_priority(self) -> None:
         """Test parsing of a task with priority."""
         task_str = "(A) Task with priority"
         task = parse_task(task_str)
@@ -134,7 +134,7 @@ class TestParsing(unittest.TestCase):
         self.assertEqual(task.description, "Task with priority")
         self.assertEqual(task.priority, "A")
 
-    def test_parse_task_with_dates(self):
+    def test_parse_task_with_dates(self) -> None:
         """Test parsing of a task with creation date."""
         task_str = "2023-01-01 Task with date"
         task = parse_task(task_str)
@@ -142,7 +142,7 @@ class TestParsing(unittest.TestCase):
         self.assertEqual(task.description, "Task with date")
         self.assertEqual(task.creation_date, date(2023, 1, 1))
 
-    def test_parse_completed_task(self):
+    def test_parse_completed_task(self) -> None:
         """Test parsing of a completed task."""
         task_str = "x 2023-01-15 Completed task"
         task = parse_task(task_str)
@@ -151,7 +151,7 @@ class TestParsing(unittest.TestCase):
         self.assertTrue(task.completed)
         self.assertEqual(task.completion_date, date(2023, 1, 15))
 
-    def test_parse_completed_task_with_creation_date(self):
+    def test_parse_completed_task_with_creation_date(self) -> None:
         """Test parsing of a completed task with creation date."""
         task_str = "x 2023-01-15 2023-01-01 Completed task with creation date"
         task = parse_task(task_str)
@@ -161,7 +161,7 @@ class TestParsing(unittest.TestCase):
         self.assertEqual(task.completion_date, date(2023, 1, 15))
         self.assertEqual(task.creation_date, date(2023, 1, 1))
 
-    def test_parse_task_with_projects_and_contexts(self):
+    def test_parse_task_with_projects_and_contexts(self) -> None:
         """Test parsing of a task with projects and contexts."""
         task_str = "Task with metadata +work +report @office @computer"
         task = parse_task(task_str)
@@ -170,7 +170,7 @@ class TestParsing(unittest.TestCase):
         self.assertEqual(task.projects, {"work", "report"})
         self.assertEqual(task.contexts, {"office", "computer"})
 
-    def test_parse_complex_task(self):
+    def test_parse_complex_task(self) -> None:
         """Test parsing of a complex task with all attributes."""
         task_str = "x (B) 2023-01-15 2023-01-01 Complex task +ptodo @coding"
         task = parse_task(task_str)
