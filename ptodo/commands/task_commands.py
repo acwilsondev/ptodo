@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 import argparse
-from datetime import date
 
 from ..core import get_todo_file_path, read_tasks, write_tasks
 from ..git_service import GitService
-from ..serda import Task, create_task, serialize_task
+from ..serda import create_task, serialize_task
 
 
 def cmd_list(args: argparse.Namespace) -> int:
@@ -273,7 +272,6 @@ def cmd_next(args: argparse.Namespace) -> int:
     # ANSI color codes for formatting
     RESET = "\033[0m"
     BOLD = "\033[1m"
-    GREEN = "\033[32m"
     YELLOW = "\033[33m"
     BLUE = "\033[34m"
     CYAN = "\033[36m"

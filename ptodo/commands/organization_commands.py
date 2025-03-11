@@ -175,7 +175,7 @@ def cmd_project_pri(args: argparse.Namespace) -> int:
     # Validate priority
     if priority != "-" and (len(priority) != 1 or not "A" <= priority <= "Z"):
         print(
-            f"Error: Priority must be a capital letter (A-Z) or '-' to remove priority"
+            "Error: Priority must be a capital letter (A-Z) or '-' to remove priority"
         )
         return 1
 
@@ -206,6 +206,7 @@ def cmd_project_pri(args: argparse.Namespace) -> int:
         )
     else:
         print(
-            f"Set priority ({priority}) for {len(affected_tasks)} task(s) in project +{project_name}"
+            f"Set priority ({priority}) for {len(affected_tasks)} task(s) in "
+            f"project +{project_name}"
         )
     return 0
