@@ -4,7 +4,7 @@ from datetime import date
 
 from ..core import get_todo_file_path, read_tasks, write_tasks
 from ..git_service import GitService
-from ..serda import Task, serialize_task
+from ..serda import Task, serialize_task, create_task
 
 
 def cmd_list(args: argparse.Namespace) -> int:
@@ -120,11 +120,10 @@ def cmd_add(args: argparse.Namespace) -> int:
     git_service = GitService(todo_file.parent)
     tasks = read_tasks(todo_file, git_service)
 
-    # Create a new task
-    task = Task(
+    # Create a new task using the create_task utility which sets creation date by default
+    task = create_task(
         description=args.text,
         priority=getattr(args, "priority", None),
-        creation_date=date.today() if getattr(args, "date", False) else None,
     )
 
     tasks.append(task)
@@ -350,3 +349,35 @@ def cmd_next(args: argparse.Namespace) -> int:
             print(f"{indent}  {MAGENTA}{key}{RESET}: {value}")
 
     return 0
+
+
+def cmd_sort(args: argparse.Namespace) -> int:
+    """
+    Sort tasks in the todo.txt file by priority.
+
+    Args:
+        args: Command-line arguments
+    """
+    todo_file = get_todo_file_path()
+    git_service = GitService(todo_file.parent)
+    tasks = read_tasks(todo_file, git_service)
+
+    if not tasks:
+        print("No tasks found.")
+        return 0
+
+    # Define priority sort key (A is highest, then B, etc.)
+    # Tasks without priority come after tasks with priorities
+    def priority_key(task):
+        if not task.priority:
+            return 'Z'  # Tasks without priority come last
+        return task.priority
+
+    # Sort tasks by priority
+    tasks.sort(key=priority_key)
+
+    # Write sorted tasks back to the file
+    write_tasks(tasks, todo_file, git_service)
+    print(f"Sorted {len(tasks)} tasks by priority.")
+    return 0
+

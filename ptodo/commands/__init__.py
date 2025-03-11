@@ -23,6 +23,9 @@ from .organization_commands import (
     cmd_archive,
     cmd_contexts,
     cmd_projects,
+    cmd_project_pri,
+    cmd_project_mv,
+    cmd_project_rm,
 )
 
 # Task management commands
@@ -50,10 +53,13 @@ __all__ = [
     "cmd_projects",
     "cmd_contexts",
     "cmd_archive",
-    # Git integration commands
-    "cmd_git_init",
+    "cmd_project_pri",
+    "cmd_project_mv",
+    "cmd_project_rm",
+    # Git commands
     "cmd_git_remote",
     "cmd_git_sync",
+    "cmd_git_init",
     # Configuration commands
     "cmd_config",
 ]

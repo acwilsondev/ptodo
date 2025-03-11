@@ -129,3 +129,74 @@ def cmd_project_mv(args: argparse.Namespace) -> int:
     print(f"Renamed project +{old_name} to +{new_name} in {len(affected_tasks)} task(s)")
     return 0
 
+def cmd_project_rm(args: argparse.Namespace) -> int:
+    """
+    Remove all tasks with the specified project.
+
+    Args:
+        args: Command-line arguments containing the project name
+    """
+    project_name = args.name
+    
+    todo_file = get_todo_file_path()
+    git_service = GitService(todo_file.parent)
+    tasks = read_tasks(todo_file, git_service)
+    
+    # Count tasks with the specified project
+    affected_tasks = [t for t in tasks if project_name in t.projects]
+    
+    if not affected_tasks:
+        print(f"No tasks found with project +{project_name}")
+        return 1
+    
+    # Remove tasks with the specified project
+    remaining_tasks = [t for t in tasks if t not in affected_tasks]
+    
+    # Write remaining tasks back to file
+    write_tasks(remaining_tasks, todo_file, git_service)
+    
+    print(f"Removed {len(affected_tasks)} task(s) with project +{project_name}")
+    return 0
+
+def cmd_project_pri(args: argparse.Namespace) -> int:
+    """
+    Assign the same priority to all tasks in a project.
+
+    Args:
+        args: Command-line arguments containing the project name and priority
+    """
+    project_name = args.name
+    priority = args.priority
+    
+    # Validate priority
+    if priority != '-' and (len(priority) != 1 or not 'A' <= priority <= 'Z'):
+        print(f"Error: Priority must be a capital letter (A-Z) or '-' to remove priority")
+        return 1
+    
+    todo_file = get_todo_file_path()
+    git_service = GitService(todo_file.parent)
+    tasks = read_tasks(todo_file, git_service)
+    
+    # Find tasks with the specified project
+    affected_tasks = [t for t in tasks if project_name in t.projects]
+    
+    if not affected_tasks:
+        print(f"No tasks found with project +{project_name}")
+        return 1
+    
+    # Update priority for all tasks in the project
+    for task in affected_tasks:
+        if priority == '-':
+            task.priority = None
+        else:
+            task.priority = priority
+    
+    # Write updated tasks back to file
+    write_tasks(tasks, todo_file, git_service)
+    
+    if priority == '-':
+        print(f"Removed priority from {len(affected_tasks)} task(s) in project +{project_name}")
+    else:
+        print(f"Set priority ({priority}) for {len(affected_tasks)} task(s) in project +{project_name}")
+    return 0
+

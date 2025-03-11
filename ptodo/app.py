@@ -4,8 +4,8 @@ from typing import List, Optional
 
 from .commands.config_commands import cmd_config
 from .commands.git_commands import cmd_git_init, cmd_git_remote, cmd_git_sync
-from .commands.organization_commands import cmd_archive, cmd_contexts, cmd_projects, cmd_project_mv
-from .commands.task_commands import cmd_add, cmd_done, cmd_list, cmd_next, cmd_pri, cmd_rm, cmd_show
+from .commands.organization_commands import cmd_archive, cmd_contexts, cmd_projects, cmd_project_mv, cmd_project_pri, cmd_project_rm
+from .commands.task_commands import cmd_add, cmd_done, cmd_list, cmd_next, cmd_pri, cmd_rm, cmd_show, cmd_sort
 
 VERSION = "0.2.0"
 
@@ -80,6 +80,9 @@ def main(args: Optional[List[str]] = None) -> int:
     # Archive command
     subparsers.add_parser("archive", help="Archive completed tasks")
 
+    # Sort command
+    subparsers.add_parser("sort", help="Sort tasks by priority")
+
     # Next command
     next_parser = subparsers.add_parser("next", help="Show highest priority task")
     next_parser.add_argument("--project", "-p", help="Filter by project")
@@ -103,6 +106,13 @@ def main(args: Optional[List[str]] = None) -> int:
     project_mv_parser = project_subparsers.add_parser("mv", help="Rename a project")
     project_mv_parser.add_argument("old_name", help="Current project name")
     project_mv_parser.add_argument("new_name", help="New project name")
+
+    project_rm_parser = project_subparsers.add_parser("rm", help="Remove a project from all tasks")
+    project_rm_parser.add_argument("name", help="Project name to remove")
+
+    project_pri_parser = project_subparsers.add_parser("pri", help="Set same priority for all tasks in a project")
+    project_pri_parser.add_argument("name", help="Project name")
+    project_pri_parser.add_argument("priority", help="Priority (A-Z, or - to remove)")
 
     # Config command
     config_parser = subparsers.add_parser("config", help="Manage configuration")
@@ -147,6 +157,8 @@ def main(args: Optional[List[str]] = None) -> int:
         return int(cmd_contexts(parsed_args))
     elif parsed_args.command == "archive":
         return int(cmd_archive(parsed_args))
+    elif parsed_args.command == "sort":
+        return int(cmd_sort(parsed_args))
     elif parsed_args.command == "git-init":
         return int(cmd_git_init(parsed_args))
     elif parsed_args.command == "git-remote":
@@ -159,6 +171,10 @@ def main(args: Optional[List[str]] = None) -> int:
         return int(cmd_config(parsed_args))
     elif parsed_args.command == "project" and parsed_args.project_command == "mv":
         return int(cmd_project_mv(parsed_args))
+    elif parsed_args.command == "project" and parsed_args.project_command == "rm":
+        return int(cmd_project_rm(parsed_args))
+    elif parsed_args.command == "project" and parsed_args.project_command == "pri":
+        return int(cmd_project_pri(parsed_args))
     else:
         parser.print_help()
         return 1
