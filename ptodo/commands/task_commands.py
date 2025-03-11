@@ -159,6 +159,33 @@ def cmd_done(args: argparse.Namespace) -> int:
         return 1
 
 
+def cmd_rm(args: argparse.Namespace) -> int:
+    """
+    Remove a task without archiving.
+
+    Args:
+        args: Command-line arguments
+    """
+    todo_file = get_todo_file_path()
+    git_service = GitService(todo_file.parent)
+    tasks = read_tasks(todo_file, git_service)
+
+    if not tasks:
+        print("No tasks found.")
+        return 1
+
+    if 1 <= args.task_id <= len(tasks):
+        task = tasks[args.task_id - 1]
+        removed_task = serialize_task(task)
+        tasks.pop(args.task_id - 1)
+        write_tasks(tasks, todo_file, git_service)
+        print(f"Removed: {removed_task}")
+        return 0
+    else:
+        print(f"Error: Task number {args.task_id} out of range (1-{len(tasks)}).")
+        return 1
+
+
 def cmd_pri(args: argparse.Namespace) -> int:
     """
     Set the priority of a task.
