@@ -155,6 +155,9 @@ def main(args: Optional[List[str]] = None) -> int:
 
     config_subparsers.add_parser("reset", help="Reset configuration to defaults")
 
+    # Help command
+    subparsers.add_parser("help", help="Show this help message")
+
     # Parse arguments
     parsed_args = parser.parse_args(args)
 
@@ -195,6 +198,9 @@ def main(args: Optional[List[str]] = None) -> int:
         return int(cmd_project_rm(parsed_args))
     elif parsed_args.command == "project" and parsed_args.project_command == "pri":
         return int(cmd_project_pri(parsed_args))
+    elif parsed_args.command == "help":
+        parser.print_help()
+        return 0
     else:
         parser.print_help()
         return 1
