@@ -16,11 +16,24 @@ setup(
     install_requires=[
         # List your dependencies here
     ],
+    extras_require={
+        'dev': [
+            'black>=23.12.0',  # supports Python 3.12
+            'isort>=5.13.0',   # supports Python 3.12
+            'flake8>=7.0.0',   # supports Python 3.12
+            'mypy>=1.8.0',     # supports Python 3.12
+        ],
+        'test': [
+            'pytest>=8.0.0',   # supports Python 3.12
+            'pytest-cov>=4.1.0', # supports Python 3.12
+        ],
+    },
     classifiers=[
-        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.12",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.12',
 )
 

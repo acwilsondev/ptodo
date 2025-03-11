@@ -1,7 +1,7 @@
 import datetime
 import os
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -13,18 +13,13 @@ class Task:
     priority: str | None = None
     creation_date: datetime.date | None = None
     completion_date: datetime.date | None = None
-    projects: set[str] = None
-    contexts: set[str] = None
-    metadata: dict[str, str] = None
+    projects: set[str] = field(default_factory=set)
+    contexts: set[str] = field(default_factory=set)
+    metadata: dict[str, str] = field(default_factory=dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Initialize default values for sets and dictionaries."""
-        if self.projects is None:
-            self.projects = set()
-        if self.contexts is None:
-            self.contexts = set()
-        if self.metadata is None:
-            self.metadata = {}
+        pass  # No longer needed as we use default_factory
 
     def complete(self) -> None:
         """Mark the task as completed and set completion date to today."""
@@ -149,7 +144,7 @@ def serialize_task(task: Task) -> str:
 
 def read_tasks(filename: str) -> list[Task]:
     """Read tasks from a todo.txt file."""
-    tasks = []
+    tasks: list[Task] = []
 
     if not os.path.exists(filename):
         return tasks

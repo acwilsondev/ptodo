@@ -12,7 +12,7 @@ class GitService:
     Service for git operations. Handles initialization, syncing, and remote management.
     """
 
-    def __init__(self, repo_dir: Path = None):
+    def __init__(self, repo_dir: Path | None = None):
         """
         Initialize the GitService for a specific directory.
 

@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 
-def get_ptodo_directory():
+def get_ptodo_directory() -> Path:
     """
     Get the directory where ptodo files are stored.
     Uses $PTODO_DIRECTORY environment variable if set, otherwise defaults to ~/.ptodo

@@ -24,7 +24,8 @@ def get_todo_file_path() -> Path:
     todo_file = os.environ.get("TODO_FILE")
     if todo_file:
         return Path(todo_file)
-    return get_ptodo_directory() / get_config("todo_file")
+    todo_file_name = str(get_config("todo_file"))  # Ensure string type
+    return get_ptodo_directory() / todo_file_name
 
 
 def get_done_file_path() -> Path:
@@ -41,10 +42,11 @@ def get_done_file_path() -> Path:
     done_file = os.environ.get("DONE_FILE")
     if done_file:
         return Path(done_file)
-    return get_ptodo_directory() / get_config("done_file")
+    done_file_name = str(get_config("done_file"))  # Ensure string type
+    return get_ptodo_directory() / done_file_name
 
 
-def read_tasks(file_path: Path, git_service: GitService = None) -> list[Task]:
+def read_tasks(file_path: Path, git_service: GitService | None = None) -> list[Task]:
     """
     Read tasks from a file.
 
@@ -55,7 +57,7 @@ def read_tasks(file_path: Path, git_service: GitService = None) -> list[Task]:
     Returns:
         List of Task objects
     """
-    tasks = []
+    tasks: list[Task] = []
 
     # Pull the latest changes if git is configured
     if git_service and git_service.is_repo() and git_service.has_remote():
@@ -82,7 +84,9 @@ def read_tasks(file_path: Path, git_service: GitService = None) -> list[Task]:
 
 
 def write_tasks(
-    tasks: list[Task], file_path: Path, git_service: GitService = None
+    tasks: list[Task],
+    file_path: Path,
+    git_service: GitService | None = None,
 ) -> None:
     """
     Write tasks to a file.

@@ -3,7 +3,7 @@ import argparse
 
 from ..core import get_todo_file_path, read_tasks, write_tasks
 from ..git_service import GitService
-from ..serda import create_task, serialize_task
+from ..serda import Task, create_task, serialize_task
 
 
 def cmd_list(args: argparse.Namespace) -> int:
@@ -25,11 +25,11 @@ def cmd_list(args: argparse.Namespace) -> int:
     MAGENTA = "\033[35m"
 
     todo_file = get_todo_file_path()
-    git_service = GitService(todo_file.parent)
+    git_service: GitService = GitService(todo_file.parent)
     all_tasks = read_tasks(todo_file, git_service)
 
     # Create a list of (index, task) tuples to track original positions
-    indexed_tasks = list(enumerate(all_tasks))
+    indexed_tasks: list[tuple[int, Task]] = list(enumerate(all_tasks))
 
     # Filter tasks but keep track of original indices
     if args.project:
@@ -116,11 +116,11 @@ def cmd_add(args: argparse.Namespace) -> int:
         args: Command-line arguments
     """
     todo_file = get_todo_file_path()
-    git_service = GitService(todo_file.parent)
-    tasks = read_tasks(todo_file, git_service)
+    git_service: GitService = GitService(todo_file.parent)
+    tasks: list[Task] = read_tasks(todo_file, git_service)
 
     # Create a new task using the create_task utility which sets creation date by default
-    task = create_task(
+    task: Task = create_task(
         description=args.text,
         priority=getattr(args, "priority", None),
     )
@@ -139,8 +139,8 @@ def cmd_done(args: argparse.Namespace) -> int:
         args: Command-line arguments
     """
     todo_file = get_todo_file_path()
-    git_service = GitService(todo_file.parent)
-    tasks = read_tasks(todo_file, git_service)
+    git_service: GitService = GitService(todo_file.parent)
+    tasks: list[Task] = read_tasks(todo_file, git_service)
 
     if not tasks:
         print("No tasks found.")
@@ -165,8 +165,8 @@ def cmd_rm(args: argparse.Namespace) -> int:
         args: Command-line arguments
     """
     todo_file = get_todo_file_path()
-    git_service = GitService(todo_file.parent)
-    tasks = read_tasks(todo_file, git_service)
+    git_service: GitService = GitService(todo_file.parent)
+    tasks: list[Task] = read_tasks(todo_file, git_service)
 
     if not tasks:
         print("No tasks found.")
@@ -192,8 +192,8 @@ def cmd_pri(args: argparse.Namespace) -> int:
         args: Command-line arguments
     """
     todo_file = get_todo_file_path()
-    git_service = GitService(todo_file.parent)
-    tasks = read_tasks(todo_file, git_service)
+    git_service: GitService = GitService(todo_file.parent)
+    tasks: list[Task] = read_tasks(todo_file, git_service)
 
     if not tasks:
         print("No tasks found.")
@@ -219,8 +219,8 @@ def cmd_show(args: argparse.Namespace) -> int:
         args: Command-line arguments containing the task number
     """
     todo_file = get_todo_file_path()
-    git_service = GitService(todo_file.parent)
-    tasks = read_tasks(todo_file, git_service)
+    git_service: GitService = GitService(todo_file.parent)
+    tasks: list[Task] = read_tasks(todo_file, git_service)
 
     if not tasks:
         print("No tasks found.")
@@ -279,11 +279,11 @@ def cmd_next(args: argparse.Namespace) -> int:
     MAGENTA = "\033[35m"
 
     todo_file = get_todo_file_path()
-    git_service = GitService(todo_file.parent)
-    all_tasks = read_tasks(todo_file, git_service)
+    git_service: GitService = GitService(todo_file.parent)
+    all_tasks: list[Task] = read_tasks(todo_file, git_service)
 
     # Create a list of (index, task) tuples to track original positions
-    indexed_tasks = list(enumerate(all_tasks))
+    indexed_tasks: list[tuple[int, Task]] = list(enumerate(all_tasks))
 
     # Filter tasks but keep track of original indices
     if args.project:
@@ -296,7 +296,7 @@ def cmd_next(args: argparse.Namespace) -> int:
 
     # Sort tasks by priority (A is highest, then B, etc.)
     # For tasks without priority, they come after tasks with priorities
-    def priority_key(item):
+    def priority_key(item: tuple[int, Task]) -> str:
         task = item[1]
         if not task.priority:
             return "Z"  # Tasks without priority come last
@@ -310,6 +310,8 @@ def cmd_next(args: argparse.Namespace) -> int:
         return 0
 
     # Only show the top task
+    original_idx: int
+    task: Task
     original_idx, task = indexed_tasks[0]
 
     # Format basic task information using the original (1-based) index
@@ -357,8 +359,8 @@ def cmd_sort(args: argparse.Namespace) -> int:
         args: Command-line arguments
     """
     todo_file = get_todo_file_path()
-    git_service = GitService(todo_file.parent)
-    tasks = read_tasks(todo_file, git_service)
+    git_service: GitService = GitService(todo_file.parent)
+    tasks: list[Task] = read_tasks(todo_file, git_service)
 
     if not tasks:
         print("No tasks found.")
@@ -366,7 +368,7 @@ def cmd_sort(args: argparse.Namespace) -> int:
 
     # Define priority sort key (A is highest, then B, etc.)
     # Tasks without priority come after tasks with priorities
-    def priority_key(task):
+    def priority_key(task: Task) -> str:
         if not task.priority:
             return "Z"  # Tasks without priority come last
         return task.priority

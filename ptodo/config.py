@@ -1,12 +1,14 @@
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, TypeVar, Union, overload
 
 import yaml
 
 from ptodo.utils import get_ptodo_directory
 
-# Default configuration
-DEFAULT_CONFIG = {
+T = TypeVar("T")
+
+# Default configuration with type annotation
+DEFAULT_CONFIG: Dict[str, Union[str, bool]] = {
     "todo_file": "todo.txt",
     "done_file": "done.txt",
     "archive_completed": True,
@@ -62,6 +64,10 @@ def load_config() -> Dict[str, Any]:
         with open(config_path, "r", encoding="utf-8") as f:
             config = yaml.safe_load(f)
 
+        if not isinstance(config, dict):
+            # If the loaded config is not a dictionary, fallback to defaults
+            return DEFAULT_CONFIG.copy()
+
         # Merge with defaults for any missing keys
         for key, value in DEFAULT_CONFIG.items():
             if key not in config:
@@ -71,6 +77,14 @@ def load_config() -> Dict[str, Any]:
     except (yaml.YAMLError, OSError) as e:
         print(f"Error loading config file: {e}")
         return DEFAULT_CONFIG.copy()
+
+
+@overload
+def get_config(key: str, default: T) -> T: ...
+
+
+@overload
+def get_config(key: str, default: None = None) -> Union[str, bool]: ...
 
 
 def get_config(key: str, default: Any = None) -> Any:
@@ -83,7 +97,7 @@ def get_config(key: str, default: Any = None) -> Any:
             If not provided, the value from DEFAULT_CONFIG is used if available.
 
     Returns:
-        Any: The configuration value.
+        Union[str, bool]: The configuration value.
     """
     config = load_config()
     if key in config:
