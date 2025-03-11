@@ -4,7 +4,7 @@ from datetime import date
 
 from ..core import get_todo_file_path, read_tasks, write_tasks
 from ..git_service import GitService
-from ..serda import Task, serialize_task, create_task
+from ..serda import Task, create_task, serialize_task
 
 
 def cmd_list(args: argparse.Namespace) -> int:
@@ -53,8 +53,8 @@ def cmd_list(args: argparse.Namespace) -> int:
         return 0
 
     # Limit to top N tasks if specified
-    if hasattr(args, 'top') and args.top is not None and args.top > 0:
-        indexed_tasks = indexed_tasks[:args.top]
+    if hasattr(args, "top") and args.top is not None and args.top > 0:
+        indexed_tasks = indexed_tasks[: args.top]
 
     for idx, (original_idx, task) in enumerate(indexed_tasks, 0):
         # Format basic task information using the original (1-based) index
@@ -261,6 +261,8 @@ def cmd_show(args: argparse.Namespace) -> int:
     else:
         print(f"Error: Task number {args.task_id} out of range (1-{len(tasks)}).")
         return 1
+
+
 def cmd_next(args: argparse.Namespace) -> int:
     """
     Show the highest priority incomplete task.
@@ -290,7 +292,7 @@ def cmd_next(args: argparse.Namespace) -> int:
         indexed_tasks = [(i, t) for i, t in indexed_tasks if args.project in t.projects]
     if args.context:
         indexed_tasks = [(i, t) for i, t in indexed_tasks if args.context in t.contexts]
-    
+
     # Always filter to show only incomplete tasks
     indexed_tasks = [(i, t) for i, t in indexed_tasks if not t.completed]
 
@@ -299,7 +301,7 @@ def cmd_next(args: argparse.Namespace) -> int:
     def priority_key(item):
         task = item[1]
         if not task.priority:
-            return 'Z'  # Tasks without priority come last
+            return "Z"  # Tasks without priority come last
         return task.priority
 
     indexed_tasks.sort(key=priority_key)
@@ -308,10 +310,10 @@ def cmd_next(args: argparse.Namespace) -> int:
     if not indexed_tasks:
         print("No matching tasks found.")
         return 0
-    
+
     # Only show the top task
     original_idx, task = indexed_tasks[0]
-    
+
     # Format basic task information using the original (1-based) index
     task_num = f"{BOLD}[{original_idx + 1}]{RESET}"
     priority_str = f"{YELLOW}({task.priority}){RESET} " if task.priority else ""
@@ -320,9 +322,7 @@ def cmd_next(args: argparse.Namespace) -> int:
     )
 
     # Format the main task line with basic information
-    main_line = (
-        f"{task_num} {priority_str}{creation_date_str}{task.description}"
-    )
+    main_line = f"{task_num} {priority_str}{creation_date_str}{task.description}"
     print(main_line)
 
     # Format additional information in indented blocks
@@ -370,7 +370,7 @@ def cmd_sort(args: argparse.Namespace) -> int:
     # Tasks without priority come after tasks with priorities
     def priority_key(task):
         if not task.priority:
-            return 'Z'  # Tasks without priority come last
+            return "Z"  # Tasks without priority come last
         return task.priority
 
     # Sort tasks by priority
@@ -380,4 +380,3 @@ def cmd_sort(args: argparse.Namespace) -> int:
     write_tasks(tasks, todo_file, git_service)
     print(f"Sorted {len(tasks)} tasks by priority.")
     return 0
-

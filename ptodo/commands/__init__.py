@@ -22,10 +22,10 @@ from .git_commands import (
 from .organization_commands import (
     cmd_archive,
     cmd_contexts,
-    cmd_projects,
-    cmd_project_pri,
     cmd_project_mv,
+    cmd_project_pri,
     cmd_project_rm,
+    cmd_projects,
 )
 
 # Task management commands

@@ -100,11 +100,11 @@ def write_tasks(
     if git_service and git_service.is_repo():
         auto_commit = get_config("auto_commit", True)
         auto_sync = get_config("auto_sync", True)
-        
+
         if auto_commit:
             # Stage changes
             git_service.stage_changes(file_path)
-            
+
             # Check if there are changes to commit
             status = subprocess.run(
                 ["git", "status", "--porcelain"],
@@ -113,11 +113,11 @@ def write_tasks(
                 capture_output=True,
                 text=True,
             )
-            
+
             if status.stdout.strip():
                 # Commit changes
                 git_service.commit(f"Update {file_path.name}")
-                
+
                 # Push if auto_sync is enabled and we have a remote
                 if auto_sync and git_service.has_remote():
                     git_service.push()
