@@ -91,6 +91,9 @@ def cmd_list(args: argparse.Namespace) -> int:
             )
             print(f"{indent}Contexts: {context_list}")
 
+        if task.effort:
+            print(f"{indent}Effort: {task.effort}")
+        
         # Show metadata if any
         if task.metadata:
             print(f"{indent}Metadata:")
@@ -235,6 +238,9 @@ def cmd_show(args: argparse.Namespace) -> int:
 
         if task.priority:
             print(f"  Priority: {task.priority}")
+
+        if hasattr(task, 'effort') and task.effort is not None:
+            print(f"  Effort: {task.effort}")
 
         if task.creation_date:
             print(f"  Created: {task.creation_date}")

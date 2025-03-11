@@ -16,6 +16,7 @@ class Task:
     projects: set[str] = field(default_factory=set)
     contexts: set[str] = field(default_factory=set)
     metadata: dict[str, str] = field(default_factory=dict)
+    effort: int | None = None
 
     def __post_init__(self) -> None:
         """Initialize default values for sets and dictionaries."""
@@ -95,7 +96,11 @@ def parse_task(line: str) -> Task:
         # Parse metadata (key:value)
         elif ":" in part and part.index(":") > 0:
             key, value = part.split(":", 1)
-            task.metadata[key] = value
+            # Handle effort as a dedicated field
+            if key == "effort":
+                task.effort = value
+            else:
+                task.metadata[key] = value
         else:
             description_parts.append(part)
 
@@ -135,6 +140,10 @@ def serialize_task(task: Task) -> str:
     for context in sorted(task.contexts):
         parts.append(f"@{context}")
 
+    # Add effort if present
+    if task.effort is not None:
+        parts.append(f"effort:{task.effort}")
+        
     # Add metadata
     for key, value in sorted(task.metadata.items()):
         parts.append(f"{key}:{value}")
@@ -182,6 +191,7 @@ def create_task(
     projects: list[str] | None = None,
     contexts: list[str] | None = None,
     metadata: dict[str, str] | None = None,
+    effort: str | None = None,
 ) -> Task:
     """Create a new task with the given parameters."""
     task = Task(
@@ -191,5 +201,6 @@ def create_task(
         projects=set(projects) if projects else set(),
         contexts=set(contexts) if contexts else set(),
         metadata=metadata or {},
+        effort=effort,
     )
     return task
