@@ -4,8 +4,8 @@ from typing import List, Optional
 
 from .commands.config_commands import cmd_config
 from .commands.git_commands import cmd_git_init, cmd_git_remote, cmd_git_sync
-from .commands.organization_commands import cmd_archive, cmd_contexts, cmd_projects
-from .commands.task_commands import cmd_add, cmd_done, cmd_list, cmd_pri, cmd_show
+from .commands.organization_commands import cmd_archive, cmd_contexts, cmd_projects, cmd_project_mv
+from .commands.task_commands import cmd_add, cmd_done, cmd_list, cmd_next, cmd_pri, cmd_show
 
 VERSION = "0.2.0"
 
@@ -76,6 +76,11 @@ def main(args: Optional[List[str]] = None) -> int:
     # Archive command
     subparsers.add_parser("archive", help="Archive completed tasks")
 
+    # Next command
+    next_parser = subparsers.add_parser("next", help="Show highest priority task")
+    next_parser.add_argument("--project", "-p", help="Filter by project")
+    next_parser.add_argument("--context", "-@", help="Filter by context")
+
     # Git commands
     subparsers.add_parser("git-init", help="Initialize Git repository")
 
@@ -84,6 +89,16 @@ def main(args: Optional[List[str]] = None) -> int:
 
     git_sync_parser = subparsers.add_parser("git-sync", help="Sync with Git remote")
     git_sync_parser.add_argument("--message", "-m", help="Commit message")
+
+    # Project commands
+    project_parser = subparsers.add_parser("project", help="Project operations")
+    project_subparsers = project_parser.add_subparsers(
+        dest="project_command", help="Project command to run"
+    )
+
+    project_mv_parser = project_subparsers.add_parser("mv", help="Rename a project")
+    project_mv_parser.add_argument("old_name", help="Current project name")
+    project_mv_parser.add_argument("new_name", help="New project name")
 
     # Config command
     config_parser = subparsers.add_parser("config", help="Manage configuration")
@@ -132,8 +147,12 @@ def main(args: Optional[List[str]] = None) -> int:
         return int(cmd_git_remote(parsed_args))
     elif parsed_args.command == "git-sync":
         return int(cmd_git_sync(parsed_args))
+    elif parsed_args.command == "next":
+        return int(cmd_next(parsed_args))
     elif parsed_args.command == "config":
         return int(cmd_config(parsed_args))
+    elif parsed_args.command == "project" and parsed_args.project_command == "mv":
+        return int(cmd_project_mv(parsed_args))
     else:
         parser.print_help()
         return 1

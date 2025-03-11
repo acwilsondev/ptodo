@@ -235,3 +235,91 @@ def cmd_show(args: argparse.Namespace) -> int:
     else:
         print(f"Error: Task number {args.task_id} out of range (1-{len(tasks)}).")
         return 1
+def cmd_next(args: argparse.Namespace) -> int:
+    """
+    Show the highest priority incomplete task.
+
+    Args:
+        args: Command-line arguments
+    """
+    # ANSI color codes for formatting
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    BLUE = "\033[34m"
+    CYAN = "\033[36m"
+    GRAY = "\033[90m"
+    MAGENTA = "\033[35m"
+
+    todo_file = get_todo_file_path()
+    git_service = GitService(todo_file.parent)
+    all_tasks = read_tasks(todo_file, git_service)
+
+    # Create a list of (index, task) tuples to track original positions
+    indexed_tasks = list(enumerate(all_tasks))
+
+    # Filter tasks but keep track of original indices
+    if args.project:
+        indexed_tasks = [(i, t) for i, t in indexed_tasks if args.project in t.projects]
+    if args.context:
+        indexed_tasks = [(i, t) for i, t in indexed_tasks if args.context in t.contexts]
+    
+    # Always filter to show only incomplete tasks
+    indexed_tasks = [(i, t) for i, t in indexed_tasks if not t.completed]
+
+    # Sort tasks by priority (A is highest, then B, etc.)
+    # For tasks without priority, they come after tasks with priorities
+    def priority_key(item):
+        task = item[1]
+        if not task.priority:
+            return 'Z'  # Tasks without priority come last
+        return task.priority
+
+    indexed_tasks.sort(key=priority_key)
+
+    # Print the highest priority task, if any
+    if not indexed_tasks:
+        print("No matching tasks found.")
+        return 0
+    
+    # Only show the top task
+    original_idx, task = indexed_tasks[0]
+    
+    # Format basic task information using the original (1-based) index
+    task_num = f"{BOLD}[{original_idx + 1}]{RESET}"
+    priority_str = f"{YELLOW}({task.priority}){RESET} " if task.priority else ""
+    creation_date_str = (
+        f"{GRAY}{task.creation_date}{RESET} " if task.creation_date else ""
+    )
+
+    # Format the main task line with basic information
+    main_line = (
+        f"{task_num} {priority_str}{creation_date_str}{task.description}"
+    )
+    print(main_line)
+
+    # Format additional information in indented blocks
+    indent = "    "
+
+    # Show projects if any
+    if task.projects:
+        project_list = " ".join(
+            [f"{BLUE}+{project}{RESET}" for project in sorted(task.projects)]
+        )
+        print(f"{indent}Projects: {project_list}")
+
+    # Show contexts if any
+    if task.contexts:
+        context_list = " ".join(
+            [f"{CYAN}@{context}{RESET}" for context in sorted(task.contexts)]
+        )
+        print(f"{indent}Contexts: {context_list}")
+
+    # Show metadata if any
+    if task.metadata:
+        print(f"{indent}Metadata:")
+        for key, value in sorted(task.metadata.items()):
+            print(f"{indent}  {MAGENTA}{key}{RESET}: {value}")
+
+    return 0

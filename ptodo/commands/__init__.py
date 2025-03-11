@@ -30,6 +30,7 @@ from .task_commands import (
     cmd_add,
     cmd_done,
     cmd_list,
+    cmd_next,
     cmd_pri,
     cmd_show,
 )
@@ -40,6 +41,7 @@ __all__ = [
     "cmd_list",
     "cmd_add",
     "cmd_done",
+    "cmd_next",
     "cmd_pri",
     "cmd_show",
     # Organization commands

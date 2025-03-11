@@ -95,3 +95,37 @@ def cmd_contexts(_: argparse.Namespace) -> int:
     for context in sorted(all_contexts):
         print(f"  {context}")
     return 0
+
+
+def cmd_project_mv(args: argparse.Namespace) -> int:
+    """
+    Rename a project from old_name to new_name.
+
+    Args:
+        args: Command-line arguments containing old_name and new_name
+    """
+    old_name = args.old_name
+    new_name = args.new_name
+    
+    todo_file = get_todo_file_path()
+    git_service = GitService(todo_file.parent)
+    tasks = read_tasks(todo_file, git_service)
+    
+    # Count tasks with the old project
+    affected_tasks = [t for t in tasks if old_name in t.projects]
+    
+    if not affected_tasks:
+        print(f"No tasks found with project +{old_name}")
+        return 1
+    
+    # Update project names
+    for task in affected_tasks:
+        task.projects.remove(old_name)
+        task.projects.add(new_name)
+    
+    # Write updated tasks back to file
+    write_tasks(tasks, todo_file, git_service)
+    
+    print(f"Renamed project +{old_name} to +{new_name} in {len(affected_tasks)} task(s)")
+    return 0
+
