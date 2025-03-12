@@ -1,4 +1,4 @@
-.PHONY: setup test build check install clean help typecheck
+.PHONY: setup test build check install clean help typecheck metrics
 
 # Define Python and pip executables
 PYTHON := python3
@@ -33,9 +33,10 @@ typecheck: ## Run type checking with mypy
 build: clean ## Build the package
 	$(PYTHON) -m build
 
-check: ## Run linting, type checking, and tests to verify code quality
+check: ## Run linting, type checking, metrics, and tests to verify code quality
 	$(MAKE) lint
 	$(MAKE) typecheck
+	$(MAKE) metrics
 	$(MAKE) test
 
 install: build ## Install the package
@@ -57,6 +58,10 @@ clean: ## Clean up build artifacts
 	find . -type f -name "*.pyc" -delete
 	find . -type f -name "*.pyo" -delete
 	find . -type f -name "*.pyd" -delete
+
+metrics: ## Run code metrics (complexity and maintainability) using radon
+	radon cc $(PKG_NAME) tests
+	radon mi $(PKG_NAME) tests
 
 help: ## Show this help message
 	@echo "Usage: make [target]"

@@ -22,6 +22,7 @@ setup(
             'isort>=5.13.0',   # supports Python 3.12
             'flake8>=7.0.0',   # supports Python 3.12
             'mypy>=1.8.0',     # supports Python 3.12
+            'radon>=5.1.0',    # supports Python 3.12
         ],
         'test': [
             'pytest>=8.0.0',   # supports Python 3.12

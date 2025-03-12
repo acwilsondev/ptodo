@@ -143,7 +143,7 @@ def serialize_task(task: Task) -> str:
     # Add effort if present
     if task.effort is not None:
         parts.append(f"effort:{task.effort}")
-        
+
     # Add metadata
     for key, value in sorted(task.metadata.items()):
         parts.append(f"{key}:{value}")

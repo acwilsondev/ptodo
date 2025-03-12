@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 import argparse
+from datetime import datetime
 
 from ..core import get_todo_file_path, read_tasks, write_tasks
 from ..git_service import GitService
-from ..serda import Task, create_task, serialize_task
+from ..serda import Task, create_task, parse_date, serialize_task
 
 
 def cmd_list(args: argparse.Namespace) -> int:
@@ -93,7 +94,7 @@ def cmd_list(args: argparse.Namespace) -> int:
 
         if task.effort:
             print(f"{indent}Effort: {task.effort}")
-        
+
         # Show metadata if any
         if task.metadata:
             print(f"{indent}Metadata:")
@@ -239,7 +240,7 @@ def cmd_show(args: argparse.Namespace) -> int:
         if task.priority:
             print(f"  Priority: {task.priority}")
 
-        if hasattr(task, 'effort') and task.effort is not None:
+        if hasattr(task, "effort") and task.effort is not None:
             print(f"  Effort: {task.effort}")
 
         if task.creation_date:
@@ -385,4 +386,45 @@ def cmd_sort(args: argparse.Namespace) -> int:
     # Write sorted tasks back to the file
     write_tasks(tasks, todo_file, git_service)
     print(f"Sorted {len(tasks)} tasks by priority.")
+    return 0
+
+
+def cmd_await(args: argparse.Namespace) -> int:
+    """
+    Add a new waiting-for task with required due date to the todo.txt file.
+
+    Args:
+        args: Command-line arguments containing description and due_date
+    """
+    # Validate the due date format before proceeding
+    due_date = parse_date(args.due_date)
+    if due_date is None:
+        print(
+            f"Error: Invalid date format '{args.due_date}'. Please use YYYY-MM-DD format."
+        )
+        return 1
+
+    todo_file = get_todo_file_path()
+    git_service: GitService = GitService(todo_file.parent)
+    tasks: list[Task] = read_tasks(todo_file, git_service)
+
+    # Create a new task using the create_task utility which sets creation date by default
+    task: Task = create_task(
+        description=args.description,
+        priority=getattr(args, "priority", None),
+    )
+
+    # Add @waiting-for context
+    if not task.contexts:
+        task.contexts = set()
+    task.contexts.add("waiting-for")
+
+    # Add due date to metadata
+    if not task.metadata:
+        task.metadata = {}
+    task.metadata["due"] = due_date
+
+    tasks.append(task)
+    write_tasks(tasks, todo_file, git_service)
+    print(f"Added waiting-for task: {serialize_task(task)}")
     return 0

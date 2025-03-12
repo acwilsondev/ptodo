@@ -14,6 +14,7 @@ from .commands.organization_commands import (
 )
 from .commands.task_commands import (
     cmd_add,
+    cmd_await,
     cmd_done,
     cmd_list,
     cmd_next,
@@ -100,10 +101,18 @@ def main(args: Optional[List[str]] = None) -> int:
     subparsers.add_parser("sort", help="Sort tasks by priority")
 
     # Next command
+    # Next command
     next_parser = subparsers.add_parser("next", help="Show highest priority task")
     next_parser.add_argument("--project", "-p", help="Filter by project")
     next_parser.add_argument("--context", "-@", help="Filter by context")
 
+    # Await command
+    await_parser = subparsers.add_parser(
+        "await", help="Add a waiting-for task with required due date"
+    )
+    await_parser.add_argument("description", help="Task description")
+    await_parser.add_argument("due_date", help="Due date in YYYY-MM-DD format")
+    await_parser.add_argument("--priority", help="Task priority (A-Z)")
     # Git commands
     subparsers.add_parser("git-init", help="Initialize Git repository")
 
@@ -190,6 +199,8 @@ def main(args: Optional[List[str]] = None) -> int:
         return int(cmd_git_sync(parsed_args))
     elif parsed_args.command == "next":
         return int(cmd_next(parsed_args))
+    elif parsed_args.command == "await":
+        return int(cmd_await(parsed_args))
     elif parsed_args.command == "config":
         return int(cmd_config(parsed_args))
     elif parsed_args.command == "project" and parsed_args.project_command == "mv":
