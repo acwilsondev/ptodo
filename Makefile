@@ -34,10 +34,10 @@ build: clean ## Build the package
 	$(PYTHON) -m build
 
 check: ## Run linting, type checking, metrics, and tests to verify code quality
+	$(MAKE) test
 	$(MAKE) lint
 	$(MAKE) typecheck
 	$(MAKE) metrics
-	$(MAKE) test
 
 install: build ## Install the package
 	$(PIP) install .

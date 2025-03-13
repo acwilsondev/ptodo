@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import argparse
-from datetime import datetime
 
 from ..core import get_todo_file_path, read_tasks, write_tasks
 from ..git_service import GitService
@@ -422,7 +421,7 @@ def cmd_await(args: argparse.Namespace) -> int:
     # Add due date to metadata
     if not task.metadata:
         task.metadata = {}
-    task.metadata["due"] = due_date
+    task.metadata["due"] = due_date.strftime("%Y-%m-%d")
 
     tasks.append(task)
     write_tasks(tasks, todo_file, git_service)

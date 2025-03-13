@@ -16,11 +16,7 @@ class Task:
     projects: set[str] = field(default_factory=set)
     contexts: set[str] = field(default_factory=set)
     metadata: dict[str, str] = field(default_factory=dict)
-    effort: int | None = None
-
-    def __post_init__(self) -> None:
-        """Initialize default values for sets and dictionaries."""
-        pass  # No longer needed as we use default_factory
+    effort: str | None = None
 
     def complete(self) -> None:
         """Mark the task as completed and set completion date to today."""
