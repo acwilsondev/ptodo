@@ -8,7 +8,7 @@ from ptodo.utils import get_ptodo_directory
 T = TypeVar("T")
 
 # Default configuration with type annotation
-DEFAULT_CONFIG: Dict[str, Union[str, bool]] = {
+DEFAULT_CONFIG: Dict[str, Union[str, bool, Optional[int]]] = {
     "todo_file": "todo.txt",
     "done_file": "done.txt",
     "archive_completed": True,
@@ -17,6 +17,7 @@ DEFAULT_CONFIG: Dict[str, Union[str, bool]] = {
     "date_format": "%Y-%m-%d",
     "auto_commit": True,
     "auto_sync": True,
+    "default_list_count": None,
 }
 
 CONFIG_FILENAME = "config.yaml"
@@ -84,7 +85,7 @@ def get_config(key: str, default: T) -> T: ...
 
 
 @overload
-def get_config(key: str, default: None = None) -> Union[str, bool]: ...
+def get_config(key: str, default: None = None) -> Union[str, bool, Optional[int]]: ...
 
 
 def get_config(key: str, default: Any = None) -> Any:
@@ -97,7 +98,7 @@ def get_config(key: str, default: Any = None) -> Any:
             If not provided, the value from DEFAULT_CONFIG is used if available.
 
     Returns:
-        Union[str, bool]: The configuration value.
+        Union[str, bool, Optional[int]]: The configuration value.
     """
     config = load_config()
     if key in config:
