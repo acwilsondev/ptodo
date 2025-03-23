@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="ptodo",
-    version="1.0.0",
+    version="1.1.0",
     description="Plaintext Todo.txt CLI",
     author="Aaron Wilson",
     author_email="aaron@acwilson.dev",
