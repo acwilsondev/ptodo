@@ -5,6 +5,17 @@ from ..core import get_todo_file_path, read_tasks, write_tasks
 from ..git_service import GitService
 from ..serda import Task, create_task, parse_date, serialize_task
 
+# ANSI color codes for formatting
+RESET = "\033[0m"
+BOLD = "\033[1m"
+GREEN = "\033[32m"
+YELLOW = "\033[33m"
+BLUE = "\033[34m"
+CYAN = "\033[36m"
+GRAY = "\033[90m"
+RED = "\033[31m"
+MAGENTA = "\033[35m"
+
 
 def cmd_list(args: argparse.Namespace) -> int:
     """
@@ -13,16 +24,6 @@ def cmd_list(args: argparse.Namespace) -> int:
     Args:
         args: Command-line arguments
     """
-    # ANSI color codes for formatting
-    RESET = "\033[0m"
-    BOLD = "\033[1m"
-    GREEN = "\033[32m"
-    YELLOW = "\033[33m"
-    BLUE = "\033[34m"
-    CYAN = "\033[36m"
-    GRAY = "\033[90m"
-    # RED = "\033[31m"
-    MAGENTA = "\033[35m"
 
     todo_file = get_todo_file_path()
     git_service: GitService = GitService(todo_file.parent)
@@ -55,50 +56,20 @@ def cmd_list(args: argparse.Namespace) -> int:
     if hasattr(args, "top") and args.top is not None and args.top > 0:
         indexed_tasks = indexed_tasks[: args.top]
 
-    for idx, (original_idx, task) in enumerate(indexed_tasks, 0):
-        # Format basic task information using the original (1-based) index
-        task_num = f"{BOLD}[{original_idx + 1}]{RESET}"
-        priority_str = f"{YELLOW}({task.priority}){RESET} " if task.priority else ""
-        completion_str = f"{GREEN}x{RESET} " if task.completed else ""
-        completion_date_str = (
-            f"{GRAY}{task.completion_date}{RESET} " if task.completion_date else ""
-        )
-        creation_date_str = (
-            f"{GRAY}{task.creation_date}{RESET} " if task.creation_date else ""
-        )
-
-        # Format the main task line with basic information
-        main_line = (
-            f"{task_num} {completion_str}{priority_str}{completion_date_str}"
-            f"{creation_date_str}{task.description}"
-        )
-        print(main_line)
+    for _, (original_idx, task) in enumerate(indexed_tasks, 0):
+        _show_main_line(original_idx, task)
 
         # Format additional information in indented blocks
         indent = "    "
 
-        # Show projects if any
-        if task.projects:
-            project_list = " ".join(
-                [f"{BLUE}+{project}{RESET}" for project in sorted(task.projects)]
-            )
-            print(f"{indent}Projects: {project_list}")
+        _show_projects(task, indent)
 
-        # Show contexts if any
-        if task.contexts:
-            context_list = " ".join(
-                [f"{CYAN}@{context}{RESET}" for context in sorted(task.contexts)]
-            )
-            print(f"{indent}Contexts: {context_list}")
+        _show_contexts(task, indent)
 
         if task.effort:
             print(f"{indent}Effort: {task.effort}")
 
-        # Show metadata if any
-        if task.metadata:
-            print(f"{indent}Metadata:")
-            for key, value in sorted(task.metadata.items()):
-                print(f"{indent}  {MAGENTA}{key}{RESET}: {value}")
+        _show_metadata(task, indent)
 
         # Add a separator line between tasks for better readability
         print("")
@@ -109,6 +80,48 @@ def cmd_list(args: argparse.Namespace) -> int:
     )
     print(f"{GRAY}      For example: 'ptodo done 3' or 'ptodo pri 2 A'{RESET}")
     return 0
+
+
+def _show_main_line(original_idx, task):
+    task_num = f"{BOLD}[{original_idx + 1}]{RESET}"
+    priority_str = f"{YELLOW}({task.priority}){RESET} " if task.priority else ""
+    completion_str = f"{GREEN}x{RESET} " if task.completed else ""
+    completion_date_str = (
+            f"{GRAY}{task.completion_date}{RESET} " if task.completion_date else ""
+        )
+    creation_date_str = (
+            f"{GRAY}{task.creation_date}{RESET} " if task.creation_date else ""
+        )
+
+        # Format the main task line with basic information
+    main_line = (
+            f"{task_num} {completion_str}{priority_str}{completion_date_str}"
+            f"{creation_date_str}{task.description}"
+        )
+    print(main_line)
+
+
+def _show_projects(task, indent):
+    if task.projects:
+        project_list = " ".join(
+                [f"{BLUE}+{project}{RESET}" for project in sorted(task.projects)]
+            )
+        print(f"{indent}Projects: {project_list}")
+
+
+def _show_contexts(task, indent):
+    if task.contexts:
+        context_list = " ".join(
+                [f"{CYAN}@{context}{RESET}" for context in sorted(task.contexts)]
+            )
+        print(f"{indent}Contexts: {context_list}")
+
+
+def _show_metadata(task, indent):
+    if task.metadata:
+        print(f"{indent}Metadata:")
+        for key, value in sorted(task.metadata.items()):
+            print(f"{indent}  {MAGENTA}{key}{RESET}: {value}")
 
 
 def cmd_add(args: argparse.Namespace) -> int:
@@ -175,16 +188,16 @@ def cmd_rm(args: argparse.Namespace) -> int:
         print("No tasks found.")
         return 1
 
-    if 1 <= args.task_id <= len(tasks):
-        task = tasks[args.task_id - 1]
-        removed_task = serialize_task(task)
-        tasks.pop(args.task_id - 1)
-        write_tasks(tasks, todo_file, git_service)
-        print(f"Removed: {removed_task}")
-        return 0
-    else:
+    if args.task_id < 1 or args.task_id > len(tasks):
         print(f"Error: Task number {args.task_id} out of range (1-{len(tasks)}).")
         return 1
+
+    task = tasks[args.task_id - 1]
+    removed_task = serialize_task(task)
+    tasks.pop(args.task_id - 1)
+    write_tasks(tasks, todo_file, git_service)
+    print(f"Removed: {removed_task}")
+    return 0
 
 
 def cmd_pri(args: argparse.Namespace) -> int:
@@ -202,16 +215,16 @@ def cmd_pri(args: argparse.Namespace) -> int:
         print("No tasks found.")
         return 1
 
-    if 1 <= args.task_id <= len(tasks):
-        task = tasks[args.task_id - 1]
-        original = serialize_task(task)
-        task.priority = args.priority
-        write_tasks(tasks, todo_file, git_service)
-        print(f"Updated: {original} → {serialize_task(task)}")
-        return 0
-    else:
+    if args.task_id < 1 or args.task_id > len(tasks):
         print(f"Error: Task number {args.task_id} out of range (1-{len(tasks)}).")
         return 1
+
+    task = tasks[args.task_id - 1]
+    original = serialize_task(task)
+    task.priority = args.priority
+    write_tasks(tasks, todo_file, git_service)
+    print(f"Updated: {original} → {serialize_task(task)}")
+    return 0
 
 
 def cmd_show(args: argparse.Namespace) -> int:
@@ -229,43 +242,43 @@ def cmd_show(args: argparse.Namespace) -> int:
         print("No tasks found.")
         return 1
 
-    if 1 <= args.task_id <= len(tasks):
-        task = tasks[args.task_id - 1]
-
-        # Build a detailed view of the task
-        print(f"Task #{args.task_id}:")
-        print(f"  Status: {'Completed' if task.completed else 'Pending'}")
-
-        if task.priority:
-            print(f"  Priority: {task.priority}")
-
-        if hasattr(task, "effort") and task.effort is not None:
-            print(f"  Effort: {task.effort}")
-
-        if task.creation_date:
-            print(f"  Created: {task.creation_date}")
-
-        if task.completion_date:
-            print(f"  Completed: {task.completion_date}")
-
-        print(f"  Description: {task.description}")
-
-        if task.projects:
-            print(f"  Projects: {', '.join(task.projects)}")
-
-        if task.contexts:
-            print(f"  Contexts: {', '.join(task.contexts)}")
-
-        if task.metadata:
-            print("  Metadata:")
-            for key, value in task.metadata.items():
-                print(f"    {key}: {value}")
-
-        print(f"\nRaw format: {serialize_task(task)}")
-        return 0
-    else:
+    if args.task_id < 1 or args.task_id > len(tasks):
         print(f"Error: Task number {args.task_id} out of range (1-{len(tasks)}).")
         return 1
+
+    task = tasks[args.task_id - 1]
+
+    # Build a detailed view of the task
+    print(f"Task #{args.task_id}:")
+    print(f"  Status: {'Completed' if task.completed else 'Pending'}")
+
+    if task.priority:
+        print(f"  Priority: {task.priority}")
+
+    if hasattr(task, "effort") and task.effort is not None:
+        print(f"  Effort: {task.effort}")
+
+    if task.creation_date:
+        print(f"  Created: {task.creation_date}")
+
+    if task.completion_date:
+        print(f"  Completed: {task.completion_date}")
+
+    print(f"  Description: {task.description}")
+
+    if task.projects:
+        print(f"  Projects: {', '.join(task.projects)}")
+
+    if task.contexts:
+        print(f"  Contexts: {', '.join(task.contexts)}")
+
+    if task.metadata:
+        print("  Metadata:")
+        for key, value in task.metadata.items():
+            print(f"    {key}: {value}")
+
+    print(f"\nRaw format: {serialize_task(task)}")
+    return 0
 
 
 def cmd_next(args: argparse.Namespace) -> int:
@@ -275,14 +288,7 @@ def cmd_next(args: argparse.Namespace) -> int:
     Args:
         args: Command-line arguments
     """
-    # ANSI color codes for formatting
-    RESET = "\033[0m"
-    BOLD = "\033[1m"
-    YELLOW = "\033[33m"
-    BLUE = "\033[34m"
-    CYAN = "\033[36m"
-    GRAY = "\033[90m"
-    MAGENTA = "\033[35m"
+
 
     todo_file = get_todo_file_path()
     git_service: GitService = GitService(todo_file.parent)
@@ -357,7 +363,7 @@ def cmd_next(args: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_sort(args: argparse.Namespace) -> int:
+def cmd_sort(_: argparse.Namespace) -> int:
     """
     Sort tasks in the todo.txt file by priority.
 
@@ -416,7 +422,7 @@ def cmd_await(args: argparse.Namespace) -> int:
     # Add @waiting-for context
     if not task.contexts:
         task.contexts = set()
-    task.contexts.add("waiting-for")
+    task.contexts.add("waiting")
 
     # Add due date to metadata
     if not task.metadata:
