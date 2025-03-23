@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 import argparse
+import datetime
 
 from ..config import get_config
 from ..core import get_todo_file_path, read_tasks, write_tasks
 from ..git_service import GitService
-from ..serda import Task, create_task, parse_date, serialize_task
+from ..serda import Task, create_task, parse_date, parse_task
 
 # ANSI color codes for formatting
 RESET = "\033[0m"
@@ -148,15 +149,30 @@ def cmd_add(args: argparse.Namespace) -> int:
     git_service: GitService = GitService(todo_file.parent)
     tasks: list[Task] = read_tasks(todo_file, git_service)
 
-    # Create a new task using the create_task utility which sets creation date by default
+    # Step 1: Parse the input text first to extract all components
+    parsed_task = parse_task(args.text)
+
+    # Use the priority from the parsed task or from args
+    priority = parsed_task.priority or getattr(args, "priority", None)
+
+    # Step 2: Create a new task with priority as the primary attribute,
+    # but explicitly disable creation date for now
     task: Task = create_task(
-        description=args.text,
-        priority=getattr(args, "priority", None),
+        description=parsed_task.description,
+        priority=priority,
+        add_creation_date=False,  # Don't add creation date yet
+        projects=list(parsed_task.projects) if parsed_task.projects else None,
+        contexts=list(parsed_task.contexts) if parsed_task.contexts else None,
+        metadata=parsed_task.metadata if parsed_task.metadata else None,
+        effort=parsed_task.effort,
     )
+
+    # Step 3: Now set the creation date after priority
+    task.creation_date = datetime.date.today()
 
     tasks.append(task)
     write_tasks(tasks, todo_file, git_service)
-    print(f"Added: {serialize_task(task)}")
+    print(f"Added: {task}")
     return 0
 
 
@@ -179,7 +195,7 @@ def cmd_done(args: argparse.Namespace) -> int:
         task = tasks[args.task_id - 1]
         task.complete()
         write_tasks(tasks, todo_file, git_service)
-        print(f"Completed: {serialize_task(task)}")
+        print(f"Completed: {task}")
         return 0
     else:
         print(f"Error: Task number {args.task_id} out of range (1-{len(tasks)}).")
@@ -206,10 +222,9 @@ def cmd_rm(args: argparse.Namespace) -> int:
         return 1
 
     task = tasks[args.task_id - 1]
-    removed_task = serialize_task(task)
     tasks.pop(args.task_id - 1)
     write_tasks(tasks, todo_file, git_service)
-    print(f"Removed: {removed_task}")
+    print(f"Removed: {task}")
     return 0
 
 
@@ -233,10 +248,10 @@ def cmd_pri(args: argparse.Namespace) -> int:
         return 1
 
     task = tasks[args.task_id - 1]
-    original = serialize_task(task)
+    original = str(task)
     task.priority = args.priority
     write_tasks(tasks, todo_file, git_service)
-    print(f"Updated: {original} → {serialize_task(task)}")
+    print(f"Updated: {original} → {task}")
     return 0
 
 
@@ -265,7 +280,7 @@ def cmd_show(args: argparse.Namespace) -> int:
     print(f"Task #{args.task_id}:")
     _show_task(args.task_id - 1, task)
 
-    print(f"\nRaw format: {serialize_task(task)}")
+    print(f"\nRaw format: {task}")
     return 0
 
 
@@ -386,5 +401,5 @@ def cmd_await(args: argparse.Namespace) -> int:
 
     tasks.append(task)
     write_tasks(tasks, todo_file, git_service)
-    print(f"Added waiting-for task: {serialize_task(task)}")
+    print(f"Added waiting-for task: {task}")
     return 0

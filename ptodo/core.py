@@ -6,7 +6,7 @@ from pathlib import Path
 
 from .config import get_config
 from .git_service import GitService
-from .serda import Task, parse_task, serialize_task
+from .serda import Task, parse_task
 from .utils import get_ptodo_directory
 
 
@@ -98,7 +98,7 @@ def write_tasks(
     """
     with open(file_path, "w", encoding="utf-8") as f:
         for task in tasks:
-            f.write(serialize_task(task) + "\n")
+            f.write(f"{task}\n")
 
     # Handle git operations based on config settings
     if git_service and git_service.is_repo():

@@ -8,11 +8,11 @@ from dataclasses import dataclass, field
 class Task:
     """Represents a single task in todo.txt format."""
 
-    description: str
     completed: bool = False
     priority: str | None = None
-    creation_date: datetime.date | None = None
     completion_date: datetime.date | None = None
+    creation_date: datetime.date | None = None
+    description: str = ""
     projects: set[str] = field(default_factory=set)
     contexts: set[str] = field(default_factory=set)
     metadata: dict[str, str] = field(default_factory=dict)
@@ -25,7 +25,23 @@ class Task:
 
     def __str__(self) -> str:
         """Return the string representation in todo.txt format."""
-        return serialize_task(self)
+        parts = []
+        if self.completed:
+            parts.append("x")
+        if self.priority:
+            parts.append(f"({self.priority})")
+        if self.completed and self.completion_date:
+            parts.append(self.completion_date.strftime("%Y-%m-%d"))
+        if self.creation_date:
+            parts.append(self.creation_date.strftime("%Y-%m-%d"))
+        parts.append(self.description)
+        parts.extend(f"+{p}" for p in sorted(self.projects))
+        parts.extend(f"@{c}" for c in sorted(self.contexts))
+        if self.effort:
+            parts.append(f"effort:{self.effort}")
+        for k, v in sorted(self.metadata.items()):
+            parts.append(f"{k}:{v}")
+        return " ".join(parts)
 
 
 def parse_date(date_str: str) -> datetime.date | None:
@@ -46,9 +62,17 @@ def serialize_date(date_obj: datetime.date | None) -> str:
 
 
 def parse_task(line: str) -> Task:
-    """Parse a todo.txt line into a Task object."""
+    """Parse a todo.txt line into a Task object.
+
+    Parse order:
+    1. Completion status
+    2. Priority
+    3. Completion date (if completed)
+    4. Creation date
+    5. Description and metadata
+    """
     # Initialize with default values
-    task = Task(description="")
+    task = Task()
 
     # Skip empty lines
     if not line.strip():
@@ -66,23 +90,23 @@ def parse_task(line: str) -> Task:
         task.priority = parts[0][1]  # Extract the letter
         parts.pop(0)
 
-    # Parse dates
-    date_index = 0
+    # Parse dates in order: first completion date (if completed), then creation date
+    remaining_parts_index = 0
 
     # If task is completed, first date might be completion date
     if task.completed and len(parts) >= 1 and parse_date(parts[0]):
         task.completion_date = parse_date(parts[0])
-        date_index = 1
+        remaining_parts_index = 1
 
     # Next possible date could be creation date
-    if len(parts) > date_index and parse_date(parts[date_index]):
-        task.creation_date = parse_date(parts[date_index])
-        date_index += 1
+    if len(parts) > remaining_parts_index and parse_date(parts[remaining_parts_index]):
+        task.creation_date = parse_date(parts[remaining_parts_index])
+        remaining_parts_index += 1
 
     # Rest of the line is the description and metadata
     description_parts = []
 
-    for part in parts[date_index:]:
+    for part in parts[remaining_parts_index:]:
         # Parse projects
         if part.startswith("+") and len(part) > 1:
             task.projects.add(part[1:])
@@ -105,48 +129,6 @@ def parse_task(line: str) -> Task:
     return task
 
 
-def serialize_task(task: Task) -> str:
-    """Convert a Task object to a todo.txt line."""
-    parts = []
-
-    # Add completion marker
-    if task.completed:
-        parts.append("x")
-
-    # Add priority if present
-    if task.priority:
-        parts.append(f"({task.priority})")
-
-    # Add completion date for completed tasks
-    if task.completed and task.completion_date:
-        parts.append(serialize_date(task.completion_date))
-
-    # Add creation date if present
-    if task.creation_date:
-        parts.append(serialize_date(task.creation_date))
-
-    # Add description
-    parts.append(task.description)
-
-    # Add projects
-    for project in sorted(task.projects):
-        parts.append(f"+{project}")
-
-    # Add contexts
-    for context in sorted(task.contexts):
-        parts.append(f"@{context}")
-
-    # Add effort if present
-    if task.effort is not None:
-        parts.append(f"effort:{task.effort}")
-
-    # Add metadata
-    for key, value in sorted(task.metadata.items()):
-        parts.append(f"{key}:{value}")
-
-    return " ".join(parts)
-
-
 def read_tasks(filename: str) -> list[Task]:
     """Read tasks from a todo.txt file."""
     tasks: list[Task] = []
@@ -166,13 +148,13 @@ def write_tasks(filename: str, tasks: list[Task]) -> None:
     """Write tasks to a todo.txt file."""
     with open(filename, "w", encoding="utf-8") as f:
         for task in tasks:
-            f.write(serialize_task(task) + "\n")
+            f.write(f"{task}\n")
 
 
 def append_task(filename: str, task: Task) -> None:
     """Append a task to a todo.txt file."""
     with open(filename, "a", encoding="utf-8") as f:
-        f.write(serialize_task(task) + "\n")
+        f.write(f"{task}\n")
 
 
 def today_string() -> str:
@@ -191,9 +173,11 @@ def create_task(
 ) -> Task:
     """Create a new task with the given parameters."""
     task = Task(
-        description=description,
+        completed=False,
         priority=priority,
+        completion_date=None,
         creation_date=datetime.date.today() if add_creation_date else None,
+        description=description,
         projects=set(projects) if projects else set(),
         contexts=set(contexts) if contexts else set(),
         metadata=metadata or {},
