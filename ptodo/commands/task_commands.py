@@ -57,19 +57,7 @@ def cmd_list(args: argparse.Namespace) -> int:
         indexed_tasks = indexed_tasks[: args.top]
 
     for _, (original_idx, task) in enumerate(indexed_tasks, 0):
-        _show_main_line(original_idx, task)
-
-        # Format additional information in indented blocks
-        indent = "    "
-
-        _show_projects(task, indent)
-
-        _show_contexts(task, indent)
-
-        if task.effort:
-            print(f"{indent}Effort: {task.effort}")
-
-        _show_metadata(task, indent)
+        _show_task(original_idx, task)
 
         # Add a separator line between tasks for better readability
         print("")
@@ -80,6 +68,22 @@ def cmd_list(args: argparse.Namespace) -> int:
     )
     print(f"{GRAY}      For example: 'ptodo done 3' or 'ptodo pri 2 A'{RESET}")
     return 0
+
+
+def _show_task(original_idx, task):
+    _show_main_line(original_idx, task)
+
+        # Format additional information in indented blocks
+    indent = "    "
+
+    _show_projects(task, indent)
+
+    _show_contexts(task, indent)
+
+    if task.effort:
+        print(f"{indent}Effort: {task.effort}")
+
+    _show_metadata(task, indent)
 
 
 def _show_main_line(original_idx, task):
