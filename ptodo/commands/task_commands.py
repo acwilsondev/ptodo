@@ -69,10 +69,10 @@ def cmd_list(args: argparse.Namespace) -> int:
         # Add a separator line between tasks for better readability
         print("")
 
-    if not hasattr(args, 'quiet') or not args.quiet:
+    if not hasattr(args, "quiet") or not args.quiet:
         print(f"{GRAY}Showing {len(indexed_tasks)} of {len(all_tasks)} tasks.{RESET}")
         print("")
-        
+
         # Add a helpful note about task numbers
         print(
             f"{GRAY}Note: You can use task numbers with commands like 'done' and 'pri'.{RESET}"
@@ -173,7 +173,7 @@ def cmd_add(args: argparse.Namespace) -> int:
 
     tasks.append(task)
     write_tasks(tasks, todo_file, git_service)
-    if not hasattr(args, 'quiet') or not args.quiet:
+    if not hasattr(args, "quiet") or not args.quiet:
         print(f"Added: {task}")
     return 0
 
@@ -197,7 +197,7 @@ def cmd_done(args: argparse.Namespace) -> int:
         task = tasks[args.task_id - 1]
         task.complete()
         write_tasks(tasks, todo_file, git_service)
-        if not hasattr(args, 'quiet') or not args.quiet:
+        if not hasattr(args, "quiet") or not args.quiet:
             print(f"Completed: {task}")
         return 0
     else:
@@ -227,7 +227,7 @@ def cmd_rm(args: argparse.Namespace) -> int:
     task = tasks[args.task_id - 1]
     tasks.pop(args.task_id - 1)
     write_tasks(tasks, todo_file, git_service)
-    if not hasattr(args, 'quiet') or not args.quiet:
+    if not hasattr(args, "quiet") or not args.quiet:
         print(f"Removed: {task}")
     return 0
 
@@ -255,7 +255,7 @@ def cmd_pri(args: argparse.Namespace) -> int:
     original = str(task)
     task.priority = args.priority
     write_tasks(tasks, todo_file, git_service)
-    if not hasattr(args, 'quiet') or not args.quiet:
+    if not hasattr(args, "quiet") or not args.quiet:
         print(f"Updated: {original} → {task}")
     return 0
 
@@ -285,7 +285,7 @@ def cmd_show(args: argparse.Namespace) -> int:
     print(f"Task #{args.task_id}:")
     _show_task(args.task_id - 1, task)
 
-    if not hasattr(args, 'quiet') or not args.quiet:
+    if not hasattr(args, "quiet") or not args.quiet:
         print(f"\nRaw format: {task}")
     return 0
 
@@ -366,7 +366,7 @@ def cmd_sort(args: argparse.Namespace) -> int:
 
     # Write sorted tasks back to the file
     write_tasks(tasks, todo_file, git_service)
-    if not hasattr(args, 'quiet') or not args.quiet:
+    if not hasattr(args, "quiet") or not args.quiet:
         print(f"Sorted {len(tasks)} tasks by priority.")
     return 0
 
@@ -408,6 +408,6 @@ def cmd_await(args: argparse.Namespace) -> int:
 
     tasks.append(task)
     write_tasks(tasks, todo_file, git_service)
-    if not hasattr(args, 'quiet') or not args.quiet:
+    if not hasattr(args, "quiet") or not args.quiet:
         print(f"Added waiting-for task: {task}")
     return 0
