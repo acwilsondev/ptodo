@@ -68,6 +68,9 @@ def cmd_list(args: argparse.Namespace) -> int:
         # Add a separator line between tasks for better readability
         print("")
 
+    print(f"{GRAY}Showing {len(indexed_tasks)} of {len(all_tasks)} tasks.{RESET}")
+    print("")
+
     # Add a helpful note about task numbers
     print(
         f"{GRAY}Note: You can use task numbers with commands like 'done' and 'pri'.{RESET}"

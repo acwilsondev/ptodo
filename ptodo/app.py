@@ -24,7 +24,7 @@ from .commands.task_commands import (
     cmd_sort,
 )
 
-VERSION = "0.2.0"
+VERSION = "1.2.0"
 
 
 def main(args: Optional[List[str]] = None) -> int:
@@ -41,7 +41,7 @@ def main(args: Optional[List[str]] = None) -> int:
 
     # Create the top-level parser
     parser = argparse.ArgumentParser(description="Plain-text task management")
-    parser.add_argument("--version", action="version", version=f"ptodo {VERSION}")
+    parser.add_argument("--version", "-v", action="version", version=f"ptodo {VERSION}")
 
     # Create subparsers for each command
     subparsers = parser.add_subparsers(dest="command", help="Command to run")
