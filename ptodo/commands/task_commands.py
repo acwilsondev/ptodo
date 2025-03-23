@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 
+from ..config import get_config
 from ..core import get_todo_file_path, read_tasks, write_tasks
 from ..git_service import GitService
 from ..serda import Task, create_task, parse_date, serialize_task
@@ -52,9 +53,14 @@ def cmd_list(args: argparse.Namespace) -> int:
         print("No matching tasks found.")
         return 0
 
-    # Limit to top N tasks if specified
-    if hasattr(args, "top") and args.top is not None and args.top > 0:
-        indexed_tasks = indexed_tasks[: args.top]
+    # Get any explicit top count from args
+    list_count = getattr(args, "top", None)
+    # If not explicitly set and not showing all tasks, try to get from config
+    if list_count is None and not args.all:
+        list_count = get_config("default_list_count")
+    # Limit to top N tasks if count is specified
+    if list_count is not None and list_count > 0:
+        indexed_tasks = indexed_tasks[:list_count]
 
     for _, (original_idx, task) in enumerate(indexed_tasks, 0):
         _show_task(original_idx, task)
