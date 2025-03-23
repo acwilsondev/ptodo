@@ -42,7 +42,7 @@ def main(args: Optional[List[str]] = None) -> int:
     # Create the top-level parser
     parser = argparse.ArgumentParser(description="Plain-text task management")
     parser.add_argument("--version", "-v", action="version", version=f"ptodo {VERSION}")
-
+    parser.add_argument("--quiet", "-q", action="store_true", help="Suppress informational output")
     # Create subparsers for each command
     subparsers = parser.add_subparsers(dest="command", help="Command to run")
 
