@@ -70,10 +70,10 @@ def cmd_list(args: argparse.Namespace) -> int:
     return 0
 
 
-def _show_task(original_idx, task):
+def _show_task(original_idx: int, task: Task) -> None:
     _show_main_line(original_idx, task)
 
-        # Format additional information in indented blocks
+    # Format additional information in indented blocks
     indent = "    "
 
     _show_projects(task, indent)
@@ -86,42 +86,42 @@ def _show_task(original_idx, task):
     _show_metadata(task, indent)
 
 
-def _show_main_line(original_idx, task):
+def _show_main_line(original_idx: int, task: Task) -> None:
     task_num = f"{BOLD}[{original_idx + 1}]{RESET}"
     priority_str = f"{YELLOW}({task.priority}){RESET} " if task.priority else ""
     completion_str = f"{GREEN}x{RESET} " if task.completed else ""
     completion_date_str = (
-            f"{GRAY}{task.completion_date}{RESET} " if task.completion_date else ""
-        )
+        f"{GRAY}{task.completion_date}{RESET} " if task.completion_date else ""
+    )
     creation_date_str = (
-            f"{GRAY}{task.creation_date}{RESET} " if task.creation_date else ""
-        )
+        f"{GRAY}{task.creation_date}{RESET} " if task.creation_date else ""
+    )
 
-        # Format the main task line with basic information
+    # Format the main task line with basic information
     main_line = (
-            f"{task_num} {completion_str}{priority_str}{completion_date_str}"
-            f"{creation_date_str}{task.description}"
-        )
+        f"{task_num} {completion_str}{priority_str}{completion_date_str}"
+        f"{creation_date_str}{task.description}"
+    )
     print(main_line)
 
 
-def _show_projects(task, indent):
+def _show_projects(task: Task, indent: str) -> None:
     if task.projects:
         project_list = " ".join(
-                [f"{BLUE}+{project}{RESET}" for project in sorted(task.projects)]
-            )
+            [f"{BLUE}+{project}{RESET}" for project in sorted(task.projects)]
+        )
         print(f"{indent}Projects: {project_list}")
 
 
-def _show_contexts(task, indent):
+def _show_contexts(task: Task, indent: str) -> None:
     if task.contexts:
         context_list = " ".join(
-                [f"{CYAN}@{context}{RESET}" for context in sorted(task.contexts)]
-            )
+            [f"{CYAN}@{context}{RESET}" for context in sorted(task.contexts)]
+        )
         print(f"{indent}Contexts: {context_list}")
 
 
-def _show_metadata(task, indent):
+def _show_metadata(task: Task, indent: str) -> None:
     if task.metadata:
         print(f"{indent}Metadata:")
         for key, value in sorted(task.metadata.items()):
