@@ -254,32 +254,7 @@ def cmd_show(args: argparse.Namespace) -> int:
 
     # Build a detailed view of the task
     print(f"Task #{args.task_id}:")
-    print(f"  Status: {'Completed' if task.completed else 'Pending'}")
-
-    if task.priority:
-        print(f"  Priority: {task.priority}")
-
-    if hasattr(task, "effort") and task.effort is not None:
-        print(f"  Effort: {task.effort}")
-
-    if task.creation_date:
-        print(f"  Created: {task.creation_date}")
-
-    if task.completion_date:
-        print(f"  Completed: {task.completion_date}")
-
-    print(f"  Description: {task.description}")
-
-    if task.projects:
-        print(f"  Projects: {', '.join(task.projects)}")
-
-    if task.contexts:
-        print(f"  Contexts: {', '.join(task.contexts)}")
-
-    if task.metadata:
-        print("  Metadata:")
-        for key, value in task.metadata.items():
-            print(f"    {key}: {value}")
+    _show_task(args.task_id - 1, task)
 
     print(f"\nRaw format: {serialize_task(task)}")
     return 0
@@ -292,7 +267,6 @@ def cmd_next(args: argparse.Namespace) -> int:
     Args:
         args: Command-line arguments
     """
-
 
     todo_file = get_todo_file_path()
     git_service: GitService = GitService(todo_file.parent)
@@ -330,39 +304,7 @@ def cmd_next(args: argparse.Namespace) -> int:
     task: Task
     original_idx, task = indexed_tasks[0]
 
-    # Format basic task information using the original (1-based) index
-    task_num = f"{BOLD}[{original_idx + 1}]{RESET}"
-    priority_str = f"{YELLOW}({task.priority}){RESET} " if task.priority else ""
-    creation_date_str = (
-        f"{GRAY}{task.creation_date}{RESET} " if task.creation_date else ""
-    )
-
-    # Format the main task line with basic information
-    main_line = f"{task_num} {priority_str}{creation_date_str}{task.description}"
-    print(main_line)
-
-    # Format additional information in indented blocks
-    indent = "    "
-
-    # Show projects if any
-    if task.projects:
-        project_list = " ".join(
-            [f"{BLUE}+{project}{RESET}" for project in sorted(task.projects)]
-        )
-        print(f"{indent}Projects: {project_list}")
-
-    # Show contexts if any
-    if task.contexts:
-        context_list = " ".join(
-            [f"{CYAN}@{context}{RESET}" for context in sorted(task.contexts)]
-        )
-        print(f"{indent}Contexts: {context_list}")
-
-    # Show metadata if any
-    if task.metadata:
-        print(f"{indent}Metadata:")
-        for key, value in sorted(task.metadata.items()):
-            print(f"{indent}  {MAGENTA}{key}{RESET}: {value}")
+    _show_task(original_idx, task)
 
     return 0
 
