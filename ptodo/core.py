@@ -100,28 +100,31 @@ def write_tasks(
         for task in tasks:
             f.write(f"{task}\n")
 
-    # Handle git operations based on config settings
-    if git_service and git_service.is_repo():
-        auto_commit = get_config("auto_commit", True)
-        auto_sync = get_config("auto_sync", True)
+    if not git_service or not git_service.is_repo():
+        # nothing to commit if git is not configured
+        return
 
-        if auto_commit:
-            # Stage changes
-            git_service.stage_changes(file_path)
+    auto_commit = get_config("auto_commit", True)
+    auto_sync = get_config("auto_sync", True)
 
-            # Check if there are changes to commit
-            status = subprocess.run(
-                ["git", "status", "--porcelain"],
-                cwd=git_service.repo_dir,
-                check=True,
-                capture_output=True,
-                text=True,
-            )
+    if not auto_commit:
+        # nothing to commit if auto_commit is disabled
+        return
 
-            if status.stdout.strip():
-                # Commit changes
-                git_service.commit(f"Update {file_path.name}")
+    # Stage changes
+    git_service.stage_changes(file_path)
 
-                # Push if auto_sync is enabled and we have a remote
-                if auto_sync and git_service.has_remote():
-                    git_service.push()
+    # Check if there are changes to commit
+    status = subprocess.run(
+        ["git", "status", "--porcelain"],
+        cwd=git_service.repo_dir,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    if status.stdout.strip():
+        git_service.commit(f"Update {file_path.name}")
+
+        if auto_sync and git_service.has_remote():
+            git_service.push()

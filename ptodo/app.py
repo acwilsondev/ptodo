@@ -114,14 +114,22 @@ def main(args: Optional[List[str]] = None) -> int:
     await_parser.add_argument("due_date", help="Due date in YYYY-MM-DD format")
     await_parser.add_argument("--priority", help="Task priority (A-Z)")
     # Git commands
-    subparsers.add_parser("git-init", help="Initialize Git repository")
+    git_parser = subparsers.add_parser("git", help="Git operations")
+    git_subparsers = git_parser.add_subparsers(
+        dest="git_command", help="Git command to run"
+    )
 
-    git_remote_parser = subparsers.add_parser("git-remote", help="Set Git remote")
-    git_remote_parser.add_argument("url", help="Remote URL")
+    git_subparsers.add_parser("init", help="Initialize Git repository")
 
-    git_sync_parser = subparsers.add_parser("git-sync", help="Sync with Git remote")
+    git_remote_parser = git_subparsers.add_parser(
+        "remote", help="Show or set Git remote"
+    )
+    git_remote_parser.add_argument(
+        "url", nargs="?", help="Remote URL (if provided, sets/updates the remote)"
+    )
+
+    git_sync_parser = git_subparsers.add_parser("sync", help="Sync with Git remote")
     git_sync_parser.add_argument("--message", "-m", help="Commit message")
-
     # Project commands
     project_parser = subparsers.add_parser("project", help="Project operations")
     project_subparsers = project_parser.add_subparsers(
@@ -191,11 +199,11 @@ def main(args: Optional[List[str]] = None) -> int:
         return int(cmd_archive(parsed_args))
     elif parsed_args.command == "sort":
         return int(cmd_sort(parsed_args))
-    elif parsed_args.command == "git-init":
+    elif parsed_args.command == "git" and parsed_args.git_command == "init":
         return int(cmd_git_init(parsed_args))
-    elif parsed_args.command == "git-remote":
+    elif parsed_args.command == "git" and parsed_args.git_command == "remote":
         return int(cmd_git_remote(parsed_args))
-    elif parsed_args.command == "git-sync":
+    elif parsed_args.command == "git" and parsed_args.git_command == "sync":
         return int(cmd_git_sync(parsed_args))
     elif parsed_args.command == "next":
         return int(cmd_next(parsed_args))

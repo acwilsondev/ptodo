@@ -6,7 +6,7 @@ from datetime import date
 # Add the parent directory to the path so we can import the ptodo package
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # Import our modules after path modification
-from ptodo.serda import Task, parse_task, serialize_task  # noqa: E402
+from ptodo.serda import Task, parse_task  # noqa: E402
 
 
 class TestTask(unittest.TestCase):
@@ -58,19 +58,19 @@ class TestSerialization(unittest.TestCase):
     def test_serialize_simple_task(self) -> None:
         """Test serialization of a simple task."""
         task = Task(description="Simple task")
-        serialized = serialize_task(task)
+        serialized = str(task)
         self.assertEqual(serialized, "Simple task")
 
     def test_serialize_task_with_priority(self) -> None:
         """Test serialization of a task with priority."""
         task = Task(description="Task with priority", priority="A")
-        serialized = serialize_task(task)
+        serialized = str(task)
         self.assertEqual(serialized, "(A) Task with priority")
 
     def test_serialize_task_with_dates(self) -> None:
         """Test serialization of a task with creation date."""
         task = Task(description="Task with date", creation_date=date(2023, 1, 1))
-        serialized = serialize_task(task)
+        serialized = str(task)
         self.assertEqual(serialized, "2023-01-01 Task with date")
 
     def test_serialize_completed_task(self) -> None:
@@ -80,7 +80,7 @@ class TestSerialization(unittest.TestCase):
             completed=True,
             completion_date=date(2023, 1, 15),
         )
-        serialized = serialize_task(task)
+        serialized = str(task)
         self.assertEqual(serialized, "x 2023-01-15 Completed task")
 
     def test_serialize_task_with_projects_and_contexts(self) -> None:
@@ -90,7 +90,7 @@ class TestSerialization(unittest.TestCase):
             projects={"work", "report"},
             contexts={"office", "computer"},
         )
-        serialized = serialize_task(task)
+        serialized = str(task)
         self.assertEqual(
             serialized, "Task with metadata +report +work @computer @office"
         )
@@ -106,7 +106,7 @@ class TestSerialization(unittest.TestCase):
             projects={"ptodo"},
             contexts={"coding"},
         )
-        serialized = serialize_task(task)
+        serialized = str(task)
         self.assertEqual(
             serialized, "x (B) 2023-01-15 2023-01-01 Complex task +ptodo @coding"
         )
