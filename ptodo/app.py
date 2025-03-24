@@ -16,6 +16,7 @@ from .commands.task_commands import (
     cmd_add,
     cmd_await,
     cmd_done,
+    cmd_edit,
     cmd_list,
     cmd_next,
     cmd_pri,
@@ -175,6 +176,10 @@ def main(args: Optional[List[str]] = None) -> int:
     config_subparsers.add_parser("reset", help="Reset configuration to defaults")
 
     # Help command
+    # Edit command
+    subparsers.add_parser("edit", help="Open the todo file in your default editor")
+    
+    # Help command
     subparsers.add_parser("help", help="Show this help message")
 
     # Parse arguments
@@ -219,6 +224,8 @@ def main(args: Optional[List[str]] = None) -> int:
         return int(cmd_project_rm(parsed_args))
     elif parsed_args.command == "project" and parsed_args.project_command == "pri":
         return int(cmd_project_pri(parsed_args))
+    elif parsed_args.command == "edit":
+        return int(cmd_edit(parsed_args))
     elif parsed_args.command == "help":
         parser.print_help()
         return 0

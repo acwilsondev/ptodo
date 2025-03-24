@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import datetime
-
+import os
 from ..config import get_config
 from ..core import get_todo_file_path, read_tasks, sort_tasks, write_tasks
 from ..git_service import GitService
@@ -413,4 +413,29 @@ def cmd_await(args: argparse.Namespace) -> int:
     write_tasks(tasks, todo_file, git_service)
     if not hasattr(args, "quiet") or not args.quiet:
         print(f"Added waiting-for task: {task}")
+    return 0
+
+
+def cmd_edit(args: argparse.Namespace) -> int:
+    """
+    Open the todo.txt file in the system's default editor.
+
+    Args:
+        args: Command-line arguments
+    """
+    todo_file = get_todo_file_path()
+    
+    # Get the editor from environment variable or use a fallback
+    editor = os.environ.get("EDITOR", "vi")
+    
+    # Open the file in the editor
+    exit_code = os.system(f'{editor} "{todo_file}"')
+    
+    if exit_code != 0:
+        print(f"Error: Editor returned exit code {exit_code}")
+        return 1
+        
+    if not hasattr(args, "quiet") or not args.quiet:
+        print(f"Edited: {todo_file}")
+    
     return 0
