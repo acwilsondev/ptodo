@@ -10,6 +10,30 @@ from .serda import Task, parse_task
 from .utils import get_ptodo_directory
 
 
+def sort_tasks(tasks: list[Task]) -> list[Task]:
+    """
+    Sort tasks by priority (A is highest, then B, etc.).
+    Tasks without priority come after tasks with priorities.
+
+    Args:
+        tasks: List of Task objects to be sorted
+
+    Returns:
+        A new list with the tasks sorted by priority
+    """
+
+    # Define priority sort key (A is highest, then B, etc.)
+    # Tasks without priority come after tasks with priorities
+    def priority_key(task: Task) -> str:
+        if not task.priority:
+            return "Z"  # Tasks without priority come last
+        return task.priority
+
+    # Create a copy of the tasks list and sort it
+    sorted_tasks = sorted(tasks, key=priority_key)
+    return sorted_tasks
+
+
 def get_todo_file_path() -> Path:
     """
     Get the path to the todo.txt file.
@@ -96,8 +120,17 @@ def write_tasks(
         file_path: Path to the output file
         git_service: Optional GitService for syncing changes
     """
+    # Check if auto_sort is enabled in the configuration
+    auto_sort = get_config("auto_sort", True)
+
+    # If auto_sort is enabled, sort the tasks by priority
+    if auto_sort:
+        tasks_to_write = sort_tasks(tasks)
+    else:
+        tasks_to_write = tasks
+
     with open(file_path, "w", encoding="utf-8") as f:
-        for task in tasks:
+        for task in tasks_to_write:
             f.write(f"{task}\n")
 
     if not git_service or not git_service.is_repo():

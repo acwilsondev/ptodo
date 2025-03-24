@@ -17,6 +17,7 @@ DEFAULT_CONFIG: Dict[str, Union[str, bool, Optional[int]]] = {
     "date_format": "%Y-%m-%d",
     "auto_commit": True,
     "auto_sync": True,
+    "auto_sort": True,
     "default_list_count": None,
 }
 

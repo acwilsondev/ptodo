@@ -3,7 +3,7 @@ import argparse
 import datetime
 
 from ..config import get_config
-from ..core import get_todo_file_path, read_tasks, write_tasks
+from ..core import get_todo_file_path, read_tasks, sort_tasks, write_tasks
 from ..git_service import GitService
 from ..serda import Task, create_task, parse_date, parse_task
 
@@ -314,8 +314,8 @@ def cmd_next(args: argparse.Namespace) -> int:
     # Always filter to show only incomplete tasks
     indexed_tasks = [(i, t) for i, t in indexed_tasks if not t.completed]
 
-    # Sort tasks by priority (A is highest, then B, etc.)
-    # For tasks without priority, they come after tasks with priorities
+    # Use a key function adapted for indexed_tasks that uses the same
+    # sorting logic as the sort_tasks function in core.py
     def priority_key(item: tuple[int, Task]) -> str:
         task = item[1]
         if not task.priority:
@@ -354,18 +354,13 @@ def cmd_sort(args: argparse.Namespace) -> int:
         print("No tasks found.")
         return 0
 
-    # Define priority sort key (A is highest, then B, etc.)
-    # Tasks without priority come after tasks with priorities
-    def priority_key(task: Task) -> str:
-        if not task.priority:
-            return "Z"  # Tasks without priority come last
-        return task.priority
-
-    # Sort tasks by priority
-    tasks.sort(key=priority_key)
+    # Sort tasks by priority using the shared sort_tasks function
+    sorted_tasks = sort_tasks(tasks)
 
     # Write sorted tasks back to the file
-    write_tasks(tasks, todo_file, git_service)
+    # Note: We're passing the sorted list directly since write_tasks will handle
+    # auto_sort based on configuration
+    write_tasks(sorted_tasks, todo_file, git_service)
     if not hasattr(args, "quiet") or not args.quiet:
         print(f"Sorted {len(tasks)} tasks by priority.")
     return 0
