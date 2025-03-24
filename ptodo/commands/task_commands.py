@@ -180,10 +180,10 @@ def cmd_add(args: argparse.Namespace) -> int:
 
 def cmd_done(args: argparse.Namespace) -> int:
     """
-    Mark a task as done.
+    Mark one or more tasks as done.
 
     Args:
-        args: Command-line arguments
+        args: Command-line arguments containing task_ids
     """
     todo_file = get_todo_file_path()
     git_service: GitService = GitService(todo_file.parent)
@@ -193,16 +193,24 @@ def cmd_done(args: argparse.Namespace) -> int:
         print("No tasks found.")
         return 1
 
-    if 1 <= args.task_id <= len(tasks):
-        task = tasks[args.task_id - 1]
-        task.complete()
+    all_successful = True
+    completed_tasks = []
+
+    for task_id in args.task_ids:
+        if 1 <= task_id <= len(tasks):
+            task = tasks[task_id - 1]
+            task.complete()
+            completed_tasks.append(task)
+            if not hasattr(args, "quiet") or not args.quiet:
+                print(f"Completed: {task}")
+        else:
+            print(f"Error: Task number {task_id} out of range (1-{len(tasks)}).")
+            all_successful = False
+
+    if completed_tasks:
         write_tasks(tasks, todo_file, git_service)
-        if not hasattr(args, "quiet") or not args.quiet:
-            print(f"Completed: {task}")
-        return 0
-    else:
-        print(f"Error: Task number {args.task_id} out of range (1-{len(tasks)}).")
-        return 1
+
+    return 0 if all_successful else 1
 
 
 def cmd_rm(args: argparse.Namespace) -> int:

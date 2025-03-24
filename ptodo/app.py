@@ -74,9 +74,9 @@ def main(args: Optional[List[str]] = None) -> int:
     add_parser.add_argument("text", help="Task text")
 
     # Done command
-    done_parser = subparsers.add_parser("done", help="Mark a task as done")
-    done_parser.add_argument("task_id", type=int, help="Task ID")
-
+    # Done command
+    done_parser = subparsers.add_parser("done", help="Mark tasks as done")
+    done_parser.add_argument("task_ids", type=int, nargs="+", help="Task ID(s)")
     # Remove command
     rm_parser = subparsers.add_parser("rm", help="Remove a task without archiving")
     rm_parser.add_argument("task_id", type=int, help="Task ID")
