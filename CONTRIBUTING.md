@@ -19,6 +19,13 @@ Thank you for your interest in contributing to ptodo! This document provides gui
       - [Adding New Tests](#adding-new-tests)
       - [Continuous Integration](#continuous-integration)
     - [Code Style](#code-style)
+    - [Command Documentation](#command-documentation)
+    - [Git Commit Messages](#git-commit-messages)
+  - [Development Principles](#development-principles)
+    - [Backward Compatibility](#backward-compatibility)
+    - [Configuration System](#configuration-system)
+    - [Error Handling](#error-handling)
+    - [User Feedback](#user-feedback)
   - [Submitting Contributions](#submitting-contributions)
     - [Issues](#issues)
     - [Pull Requests](#pull-requests)
@@ -73,18 +80,32 @@ By participating in this project, you are expected to uphold our Code of Conduct
 
 ```bash
 ptodo/
-├── ptodo/            # Source code
+├── ptodo/                   # Source code
 │   ├── __init__.py
-│   ├── cli.py        # Command-line interface
-│   ├── serda.py      # Task serialization/deserialization
+│   ├── app.py              # Main application entry point
+│   ├── serda.py            # Task serialization/deserialization
+│   ├── config.py           # Configuration management
+│   ├── utils.py            # Utility functions
+│   ├── commands/           # Command implementations
+│   │   ├── __init__.py
+│   │   ├── task_commands.py # Task-related commands (add, list, done, etc.)
+│   │   ├── config_commands.py # Configuration commands
+│   │   └── git_commands.py  # Git integration commands
 │   └── ...
-├── tests/            # Test files
-├── setup.py          # Package setup script
-├── setup.cfg         # Configuration for tools
-├── pytest.ini        # Pytest configuration
-├── Makefile          # Build automation
-├── README.md         # Project documentation
-└── CONTRIBUTING.md   # This file
+├── tests/                  # Test files
+│   ├── test_app.py
+│   ├── test_serda.py
+│   ├── test_commands/      # Command tests
+│   │   ├── test_task_commands.py
+│   │   ├── test_config_commands.py
+│   │   └── test_git_commands.py
+│   └── conftest.py         # Test fixtures and configurations
+├── setup.py                # Package setup script
+├── setup.cfg               # Configuration for tools
+├── pytest.ini              # Pytest configuration
+├── Makefile                # Build automation
+├── README.md               # Project documentation
+└── CONTRIBUTING.md         # This file
 ```
 
 ## Development Workflow
@@ -114,6 +135,13 @@ ptodo/
 ### Testing
 
 We use pytest for testing. All code contributions should include tests.
+
+For command implementations:
+
+1. Test both successful command execution and error cases
+2. Include integration tests when commands interact with each other
+3. Test with various configuration settings
+4. For Git integration, use a temporary repository for testing
 
 #### Requirements
 
@@ -175,6 +203,22 @@ def test_something():
 
 These tests are designed to be run in a CI/CD pipeline. Make sure all tests pass before submitting pull requests.
 
+For Git integration testing, we use a special fixture that creates a temporary Git repository:
+
+```python
+@pytest.fixture
+def git_repo(tmp_path):
+    """Create a temporary Git repository for testing."""
+    repo_dir = tmp_path / "git_repo"
+    repo_dir.mkdir()
+    # Initialize git repo
+    subprocess.run(["git", "init"], cwd=repo_dir, check=True)
+    subprocess.run(["git", "config", "user.name", "Test User"], cwd=repo_dir, check=True)
+    subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=repo_dir, check=True)
+    # Return the path to the repo
+    return repo_dir
+```
+
 ### Code Style
 
 We follow PEP 8 guidelines for Python code. Some specific points:
@@ -196,6 +240,175 @@ make format
 
 # Type checking with mypy (if needed)
 mypy ptodo
+```
+
+### Command Documentation
+
+All commands should be well-documented:
+
+1. Include a clear, concise description in the command's help text
+2. Document all command parameters with meaningful help messages
+3. Include examples in the docstring
+4. Document return values and exit codes
+5. Update the README.md when adding new commands
+
+Example:
+
+```python
+def cmd_edit(args):
+    """
+    Open the todo file in the system's default editor.
+    
+    Uses the EDITOR environment variable if available, otherwise falls back to vi.
+    
+    Parameters:
+        args: Command-line arguments (not used)
+        
+    Returns:
+        int: 0 on success, non-zero on error
+        
+    Example:
+        ptodo edit
+    """
+    # Implementation here
+```
+
+### Git Commit Messages
+
+We follow a structured commit message format:
+
+1. Use the imperative mood ("Add feature" not "Added feature")
+2. First line is a summary (max 50 characters)
+3. Followed by a blank line
+4. Detailed description if necessary (wrap at 72 characters)
+5. Reference issues and pull requests
+
+Format:
+```
+<type>(<scope>): <summary>
+
+<description>
+
+Fixes #123
+```
+
+Types:
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Formatting, missing semicolons, etc; no code change
+- `refactor`: Code change that neither fixes a bug nor adds a feature
+- `test`: Adding tests
+- `chore`: Updating build tasks, package manager configs, etc
+
+Example:
+```
+feat(commands): add edit command for opening todo file
+
+Implement a new 'edit' command that opens the todo file in the user's
+default editor using the EDITOR environment variable.
+
+Closes #456
+```
+
+## Development Principles
+
+### Backward Compatibility
+
+When making changes, consider backward compatibility:
+
+1. Avoid breaking changes to existing functionality whenever possible
+2. If a breaking change is necessary:
+   - Document it clearly in the changelog
+   - Increment the major version number (X.y.z → X+1.0.0)
+   - Provide migration instructions for users
+3. Maintain compatibility with existing data formats and files
+   - If the format needs to change, provide a migration path
+4. Deprecate features before removing them:
+   - Mark features as deprecated with warnings
+   - Keep deprecated features for at least one release cycle
+
+### Configuration System
+
+The configuration system follows these principles:
+
+1. Configuration should be layered:
+   - System-wide defaults
+   - User configuration file (~/.config/ptodo/config)
+   - Project-specific configuration
+   - Environment variables
+   - Command-line arguments (highest precedence)
+2. All settings should have sensible defaults
+3. Configuration should be self-documenting
+4. New settings must include:
+   - Clear description
+   - Default value
+   - Validation logic
+   - Type annotation
+
+When adding new configuration options:
+```python
+def get_config_schema():
+    return {
+        "todo_file": {
+            "type": "string",
+            "default": "todo.txt",
+            "description": "The file to store todo items",
+        },
+        "new_option": {
+            "type": "string",
+            "default": "default_value",
+            "description": "Description of the new option",
+        }
+    }
+```
+
+### Error Handling
+
+Guidelines for error handling:
+
+1. Catch specific exceptions, not generic ones
+2. Provide clear, actionable error messages
+3. Log errors with appropriate context for debugging
+4. Use appropriate exit codes for different error types
+5. Handle user errors gracefully with helpful suggestions
+
+Example:
+```python
+try:
+    with open(get_todo_file_path(), "r") as f:
+        content = f.read()
+except FileNotFoundError:
+    print(f"Todo file not found. Create one with 'ptodo add <task>'")
+    return 1
+except PermissionError:
+    print(f"Permission denied when trying to read todo file.")
+    print(f"Check file permissions and try again.")
+    return 2
+```
+
+### User Feedback
+
+Principles for providing good user feedback:
+
+1. Success messages should be concise and confirmatory
+2. Error messages should be clear and actionable
+3. For long-running operations, provide progress indication
+4. Use consistent formatting for similar types of output
+5. Consider color coding for different message types (success, warning, error)
+6. Give context when operations fail
+
+Example:
+```python
+def cmd_add(args):
+    # Implementation...
+    if success:
+        print(f"Added task: {task}")
+        return 0
+    else:
+        print(f"Failed to add task. Reason: {reason}")
+        print(f"Suggestion: {suggestion}")
+        return 1
 ```
 
 ## Submitting Contributions
