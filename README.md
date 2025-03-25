@@ -21,30 +21,36 @@ pip install git+https://github.com/awilsoncs/ptodo.git
 
 ## Usage
 
-`ptodo` provides an intuitive command-line interface for managing your tasks:
+`ptodo` provides an intuitive command-line interface for managing your tasks. You can use either the traditional command style or the new subcommand structure:
 
 ```bash
-# Add a new task
-ptodo add "Call mom"
+# Add a new task (two equivalent ways)
+ptodo add "Call mom"                                    # Traditional style
+ptodo tasks add "Call mom"                              # New subcommand style
 
-# Add a task with priority, project, and context
-ptodo add "(A) Call mom about dinner +Family @Phone"
+# Add a task with priority, project, and context (two equivalent ways)
+ptodo add "(A) Call mom about dinner +Family @Phone"    # Traditional style
+ptodo tasks add "(A) Call mom about dinner +Family @Phone"  # New subcommand style
 
-# List all tasks
-ptodo list
+# List all tasks (two equivalent ways)
+ptodo list                                              # Traditional style
+ptodo tasks list                                        # New subcommand style
 
-# List tasks filtered by project or context
-ptodo list +Family
-ptodo list @Phone
+# List tasks filtered by project or context (two equivalent ways)
+ptodo list +Family                                      # Traditional style
+ptodo tasks list +Family                                # New subcommand style
 
-# Mark a task as completed
-ptodo do 1
+# Mark a task as completed (two equivalent ways)
+ptodo do 1                                              # Traditional style
+ptodo tasks done 1                                      # New subcommand style
 
-# Remove a task
-ptodo rm 2
+# Remove a task (two equivalent ways)
+ptodo rm 2                                              # Traditional style
+ptodo tasks rm 2                                        # New subcommand style
 
-# Open your todo file in your default editor
-ptodo edit
+# Open your todo file in your default editor (two equivalent ways)
+ptodo edit                                              # Traditional style
+ptodo tasks edit                                        # New subcommand style
 
 # Configure ptodo settings
 ptodo config set default_priority A
@@ -58,6 +64,63 @@ ptodo git pull
 
 # Show help
 ptodo --help
+ptodo tasks --help
+```
+
+### Command Structure
+
+The new "tasks" command groups all task-related commands under a single namespace:
+
+```
+ptodo tasks <command> [options]
+```
+
+Available task commands:
+- `add`: Add a new task
+- `list`: List and filter tasks
+- `done` (or `do`): Mark task(s) as completed
+- `rm`: Remove task(s)
+- `pri`: Set task priority
+- `show`: Display detailed task information
+- `edit`: Open tasks in your editor
+
+### Backward Compatibility
+
+For backward compatibility, all original command forms (e.g., `ptodo add`) continue to work alongside the new subcommand structure (`ptodo tasks add`). This allows you to gradually transition to the new command style without breaking existing scripts or workflows.
+
+### Command Deprecation
+
+While backward compatibility is maintained for now, the traditional command style (e.g., `ptodo add`) is deprecated and will display warnings when used. These commands will be removed in version 2.0, so it's recommended to transition to the new subcommand structure (e.g., `ptodo tasks add`).
+
+You can control deprecation warnings using these environment variables:
+
+| Variable | Description | Values |
+|----------|-------------|--------|
+| `PTODO_DEPRECATION_ENABLED` | Enable or disable deprecation warnings | `true` (default), `false`, `0`, `no`, `off` |
+| `PTODO_DEPRECATION_WARNING_TYPE` | Control how deprecation warnings are displayed | `stderr` (default), `stdout`, `python`, `silent` |
+
+Warning types:
+- `stderr`: Display warnings to standard error (default)
+- `stdout`: Display warnings to standard output
+- `python`: Use Python's built-in warning system
+- `silent`: Suppress all deprecation warnings
+
+To disable deprecation warnings temporarily:
+
+```bash
+export PTODO_DEPRECATION_ENABLED=false
+```
+
+To disable them for a single command:
+
+```bash
+PTODO_DEPRECATION_ENABLED=false ptodo add "New task"
+```
+
+To change the warning type:
+
+```bash
+export PTODO_DEPRECATION_WARNING_TYPE=stdout
 ```
 
 By default, `ptodo` looks for `todo.txt` and `done.txt` files in the current directory, but you can customize the location using environment variables:
@@ -163,26 +226,33 @@ The Git integration works with any Git remote, making it easy to synchronize you
 Here are some advanced examples of using `ptodo`:
 
 ```bash
-# Filter tasks by multiple criteria
+# Filter tasks by multiple criteria (traditional and new style)
 ptodo list +Project @Context due:today
+ptodo tasks list +Project @Context due:today
 
-# Add a task with a specific creation date
+# Add a task with a specific creation date (traditional and new style)
 ptodo add "2023-05-01 Start new project +Work"
+ptodo tasks add "2023-05-01 Start new project +Work"
 
-# Add a task with custom metadata
+# Add a task with custom metadata (traditional and new style)
 ptodo add "Research API options +Dev due:2023-06-15 effort:medium"
+ptodo tasks add "Research API options +Dev due:2023-06-15 effort:medium"
 
-# Mark a task as completed and archive in one step
+# Mark a task as completed and archive in one step (traditional and new style)
 ptodo do 3 --archive
+ptodo tasks done 3 --archive
 
-# List tasks due today
+# List tasks due today (traditional and new style)
 ptodo list due:today
+ptodo tasks list due:today
 
-# List high priority tasks
+# List high priority tasks (traditional and new style)
 ptodo list "(A)"
+ptodo tasks list "(A)"
 
-# Edit a specific task
+# Edit a specific task (traditional and new style)
 ptodo edit 5
+ptodo tasks edit 5
 
 # Configure Git auto-sync
 ptodo config set git_auto_commit true

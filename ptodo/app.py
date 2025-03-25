@@ -24,6 +24,7 @@ from .commands.task_commands import (
     cmd_show,
     cmd_sort,
 )
+from .utils.deprecation import warn_deprecated_command
 
 VERSION = "1.2.0"
 
@@ -49,7 +50,81 @@ def main(args: Optional[List[str]] = None) -> int:
     # Create subparsers for each command
     subparsers = parser.add_subparsers(dest="command", help="Command to run")
 
-    # List command
+    # Create tasks subparser with its own subcommands
+    tasks_parser = subparsers.add_parser("tasks", help="Task operations")
+    tasks_subparsers = tasks_parser.add_subparsers(
+        dest="task_command", help="Task command to run"
+    )
+
+    # Add task subcommands
+    # Tasks list command
+    tasks_list_parser = tasks_subparsers.add_parser("list", help="List tasks")
+    tasks_list_parser.add_argument(
+        "--all",
+        "-a",
+        action="store_true",
+        help="Show all tasks, including completed ones",
+    )
+    tasks_list_parser.add_argument(
+        "--completed", "-c", action="store_true", help="Show only completed tasks"
+    )
+    tasks_list_parser.add_argument("--project", "-p", help="Filter by project")
+    tasks_list_parser.add_argument("--context", "-@", help="Filter by context")
+    tasks_list_parser.add_argument("--priority", help="Filter by priority (A-Z)")
+    tasks_list_parser.add_argument(
+        "--top",
+        "-t",
+        type=int,
+        help="Limit display to the top N tasks after filtering",
+    )
+
+    # Tasks add command
+    tasks_add_parser = tasks_subparsers.add_parser("add", help="Add a task")
+    tasks_add_parser.add_argument("text", help="Task text")
+
+    # Tasks done command
+    tasks_done_parser = tasks_subparsers.add_parser("done", help="Mark tasks as done")
+    tasks_done_parser.add_argument("task_ids", type=int, nargs="+", help="Task ID(s)")
+
+    # Tasks remove command
+    tasks_rm_parser = tasks_subparsers.add_parser(
+        "rm", help="Remove a task without archiving"
+    )
+    tasks_rm_parser.add_argument("task_id", type=int, help="Task ID")
+
+    # Tasks priority command
+    tasks_pri_parser = tasks_subparsers.add_parser("pri", help="Set task priority")
+    tasks_pri_parser.add_argument("task_id", type=int, help="Task ID")
+    tasks_pri_parser.add_argument("priority", help="Priority (A-Z, or - to remove)")
+
+    # Tasks show command
+    tasks_show_parser = tasks_subparsers.add_parser("show", help="Show a task")
+    tasks_show_parser.add_argument("task_id", type=int, help="Task ID")
+
+    # Tasks sort command
+    tasks_subparsers.add_parser("sort", help="Sort tasks by priority")
+
+    # Tasks next command
+    tasks_next_parser = tasks_subparsers.add_parser(
+        "next", help="Show highest priority task"
+    )
+    tasks_next_parser.add_argument("--project", "-p", help="Filter by project")
+    tasks_next_parser.add_argument("--context", "-@", help="Filter by context")
+
+    # Tasks await command
+    tasks_await_parser = tasks_subparsers.add_parser(
+        "await", help="Add a waiting-for task with required due date"
+    )
+    tasks_await_parser.add_argument("description", help="Task description")
+    tasks_await_parser.add_argument("due_date", help="Due date in YYYY-MM-DD format")
+    tasks_await_parser.add_argument("--priority", help="Task priority (A-Z)")
+
+    # Tasks edit command
+    tasks_subparsers.add_parser(
+        "edit", help="Open the todo file in your default editor"
+    )
+
+    # List command (backward compatibility)
     list_parser = subparsers.add_parser("list", help="List tasks")
     list_parser.add_argument(
         "--all",
@@ -178,7 +253,7 @@ def main(args: Optional[List[str]] = None) -> int:
     # Help command
     # Edit command
     subparsers.add_parser("edit", help="Open the todo file in your default editor")
-    
+
     # Help command
     subparsers.add_parser("help", help="Show this help message")
 
@@ -186,17 +261,49 @@ def main(args: Optional[List[str]] = None) -> int:
     parsed_args = parser.parse_args(args)
 
     # Dispatch to the appropriate command
-    if parsed_args.command == "list":
+    if parsed_args.command == "tasks":
+        # Handle new tasks subcommands
+        if parsed_args.task_command == "list":
+            return int(cmd_list(parsed_args))
+        elif parsed_args.task_command == "add":
+            return int(cmd_add(parsed_args))
+        elif parsed_args.task_command == "done":
+            return int(cmd_done(parsed_args))
+        elif parsed_args.task_command == "rm":
+            return int(cmd_rm(parsed_args))
+        elif parsed_args.task_command == "pri":
+            return int(cmd_pri(parsed_args))
+        elif parsed_args.task_command == "show":
+            return int(cmd_show(parsed_args))
+        elif parsed_args.task_command == "sort":
+            return int(cmd_sort(parsed_args))
+        elif parsed_args.task_command == "next":
+            return int(cmd_next(parsed_args))
+        elif parsed_args.task_command == "await":
+            return int(cmd_await(parsed_args))
+        elif parsed_args.task_command == "edit":
+            return int(cmd_edit(parsed_args))
+        else:
+            parser.print_help()
+            return 1
+    # Handle backward compatibility commands
+    elif parsed_args.command == "list":
+        warn_deprecated_command("ptodo list", "ptodo tasks list")
         return int(cmd_list(parsed_args))
     elif parsed_args.command == "add":
+        warn_deprecated_command("ptodo add", "ptodo tasks add")
         return int(cmd_add(parsed_args))
     elif parsed_args.command == "done":
+        warn_deprecated_command("ptodo done", "ptodo tasks done")
         return int(cmd_done(parsed_args))
     elif parsed_args.command == "rm":
+        warn_deprecated_command("ptodo rm", "ptodo tasks rm")
         return int(cmd_rm(parsed_args))
     elif parsed_args.command == "pri":
+        warn_deprecated_command("ptodo pri", "ptodo tasks pri")
         return int(cmd_pri(parsed_args))
     elif parsed_args.command == "show":
+        warn_deprecated_command("ptodo show", "ptodo tasks show")
         return int(cmd_show(parsed_args))
     elif parsed_args.command == "projects":
         return int(cmd_projects(parsed_args))
@@ -205,6 +312,7 @@ def main(args: Optional[List[str]] = None) -> int:
     elif parsed_args.command == "archive":
         return int(cmd_archive(parsed_args))
     elif parsed_args.command == "sort":
+        warn_deprecated_command("ptodo sort", "ptodo tasks sort")
         return int(cmd_sort(parsed_args))
     elif parsed_args.command == "git" and parsed_args.git_command == "init":
         return int(cmd_git_init(parsed_args))
@@ -213,8 +321,10 @@ def main(args: Optional[List[str]] = None) -> int:
     elif parsed_args.command == "git" and parsed_args.git_command == "sync":
         return int(cmd_git_sync(parsed_args))
     elif parsed_args.command == "next":
+        warn_deprecated_command("ptodo next", "ptodo tasks next")
         return int(cmd_next(parsed_args))
     elif parsed_args.command == "await":
+        warn_deprecated_command("ptodo await", "ptodo tasks await")
         return int(cmd_await(parsed_args))
     elif parsed_args.command == "config":
         return int(cmd_config(parsed_args))
@@ -225,6 +335,7 @@ def main(args: Optional[List[str]] = None) -> int:
     elif parsed_args.command == "project" and parsed_args.project_command == "pri":
         return int(cmd_project_pri(parsed_args))
     elif parsed_args.command == "edit":
+        warn_deprecated_command("ptodo edit", "ptodo tasks edit")
         return int(cmd_edit(parsed_args))
     elif parsed_args.command == "help":
         parser.print_help()

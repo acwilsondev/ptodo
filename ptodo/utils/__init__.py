@@ -17,3 +17,6 @@ def get_ptodo_directory() -> Path:
     directory.mkdir(exist_ok=True)
 
     return directory
+
+
+# Initialize utils package
