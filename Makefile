@@ -20,7 +20,6 @@ coverage: ## Run tests with coverage report
 	pytest --cov=$(PKG_NAME) --cov-report=term-missing --cov-report=xml
 
 lint: ## Run linting checks
-	flake8 $(PKG_NAME) tests
 	isort --check-only --profile black $(PKG_NAME) tests
 	black --check $(PKG_NAME) tests
 

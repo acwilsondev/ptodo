@@ -4,7 +4,13 @@ import datetime
 import os
 
 from ..config import get_config
-from ..core import get_todo_file_path, read_tasks, sort_tasks, write_tasks
+from ..core import (
+    get_done_file_path,
+    get_todo_file_path,
+    read_tasks,
+    sort_tasks,
+    write_tasks,
+)
 from ..git_service import GitService
 from ..serda import Task, create_task, parse_date, parse_task
 
@@ -209,8 +215,15 @@ def cmd_done(args: argparse.Namespace) -> int:
             all_successful = False
 
     if completed_tasks:
-        write_tasks(tasks, todo_file, git_service)
-
+        if get_config("archive_completed"):
+            if not hasattr(args, "quiet") or not args.quiet:
+                print(f"Archiving: {len(completed_tasks)} task(s)")
+            done_file = get_done_file_path()
+            incomplete_tasks = [t for t in tasks if not t.completed]
+            write_tasks(completed_tasks, done_file, git_service)
+            write_tasks(incomplete_tasks, todo_file, git_service)
+        else:
+            write_tasks(tasks, todo_file, git_service)
     return 0 if all_successful else 1
 
 
