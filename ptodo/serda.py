@@ -17,18 +17,28 @@ class Task:
     contexts: set[str] = field(default_factory=set)
     metadata: dict[str, str] = field(default_factory=dict)
     effort: str | None = None
-
+    
+    def __post_init__(self) -> None:
+        """Ensure priority is None for completed tasks."""
+        if self.completed:
+            self.priority = None
+    
     def complete(self) -> None:
         """Mark the task as completed and set completion date to today."""
+        # If there's a priority, store it in metadata before removing it
+        if self.priority:
+            self.metadata["pri"] = self.priority
+            
         self.completed = True
         self.completion_date = datetime.date.today()
+        self.priority = None
 
     def __str__(self) -> str:
         """Return the string representation in todo.txt format."""
         parts = []
         if self.completed:
             parts.append("x")
-        if self.priority and not self.completed:
+        if self.priority:
             parts.append(f"({self.priority})")
         if self.completed and self.completion_date:
             parts.append(self.completion_date.strftime("%Y-%m-%d"))
@@ -42,6 +52,43 @@ class Task:
         for k, v in sorted(self.metadata.items()):
             parts.append(f"{k}:{v}")
         return " ".join(parts)
+
+    def recur(self) -> "Task | None":
+        """Create a recurring task."""
+        if not self.validate_recurrence():
+            return None
+        due_date = parse_date(self.metadata["due"])
+        recur_days = int(self.metadata["recur"])
+        next_due_date = due_date + datetime.timedelta(days=recur_days)
+        while next_due_date <= datetime.date.today():
+            next_due_date += datetime.timedelta(days=recur_days)
+        return Task(
+            completed=False,
+            priority=self.priority,
+            creation_date=datetime.date.today(),
+            description=self.description,
+            projects=self.projects.copy(),
+            contexts=self.contexts.copy(),
+            metadata=self.metadata.copy(),
+            effort=self.effort,
+        )
+
+    def validate_recurrence(self) -> bool:
+        """Validate the recurrence metadata."""
+        if "recur" in self.metadata:
+            if not self.metadata["recur"].isdigit():
+                print(f"Invalid recur value: {self.metadata['recur']}")
+                return False
+            if int(self.metadata["recur"]) < 1:
+                print(f"Invalid recur value: {self.metadata['recur']}")
+                return False
+            if not "due" in self.metadata:
+                print("No due date found for the task: {self.description}")
+                return False
+            if not parse_date(self.metadata["due"]):
+                print(f"Invalid due date format: {self.metadata['due']}")
+                return False
+        return True
 
 
 def parse_date(date_str: str) -> datetime.date | None:

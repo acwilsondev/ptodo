@@ -163,20 +163,15 @@ def cmd_add(args: argparse.Namespace) -> int:
     # Use the priority from the parsed task or from args
     priority = parsed_task.priority or getattr(args, "priority", None)
 
-    # Step 2: Create a new task with priority as the primary attribute,
-    # but explicitly disable creation date for now
     task: Task = create_task(
         description=parsed_task.description,
         priority=priority,
-        add_creation_date=False,  # Don't add creation date yet
+        add_creation_date=datetime.date.today(),
         projects=list(parsed_task.projects) if parsed_task.projects else None,
         contexts=list(parsed_task.contexts) if parsed_task.contexts else None,
         metadata=parsed_task.metadata if parsed_task.metadata else None,
         effort=parsed_task.effort,
     )
-
-    # Step 3: Now set the creation date after priority
-    task.creation_date = datetime.date.today()
 
     tasks.append(task)
     write_tasks(tasks, todo_file, git_service)
@@ -215,6 +210,11 @@ def cmd_done(args: argparse.Namespace) -> int:
             all_successful = False
 
     if completed_tasks:
+        # check completed tasks metadata for recur:[days] and create new instance if needed
+        for task in completed_tasks:
+            if recurrence := task.recur():
+                tasks.append(recurrence)
+
         if get_config("archive_completed"):
             if not hasattr(args, "quiet") or not args.quiet:
                 print(f"Archiving: {len(completed_tasks)} task(s)")

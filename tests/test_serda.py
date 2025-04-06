@@ -44,15 +44,107 @@ class TestTask(unittest.TestCase):
 
     def test_complete_task(self) -> None:
         """Test marking a task as complete."""
-        task = Task(description="Write tests")
+        task = Task(description="Write tests", priority="A")
         self.assertFalse(task.completed)
+        
+        # Priority should be included in the string representation before completion
+        self.assertEqual(str(task), "(A) Write tests")
+        self.assertEqual(task.priority, "A")
 
         # Mark as complete
         task.complete()
         self.assertTrue(task.completed)
         self.assertIsNotNone(task.completion_date)
         self.assertEqual(task.completion_date, date.today())
-
+        
+        # Priority should be removed when task is completed
+        # Priority should be removed from priority field and stored in metadata
+        self.assertIsNone(task.priority)
+        self.assertEqual(task.metadata.get("pri"), "A")  # Original priority preserved in metadata
+        self.assertEqual(str(task), f"x {date.today().strftime('%Y-%m-%d')} Write tests pri:A")
+    def test_complete_task_removes_priority(self) -> None:
+        """Test that priority is removed when a task is completed."""
+        task = Task(
+            description="Task with priority",
+            priority="B",
+            creation_date=date(2023, 1, 1)
+        )
+        
+        # Check initial state
+        self.assertEqual(task.priority, "B")
+        self.assertFalse(task.completed)
+        self.assertEqual(str(task), "(B) 2023-01-01 Task with priority")
+        
+        # Mark as complete
+        task.complete()
+        
+        # Priority should be removed from priority field and stored in metadata
+        self.assertIsNone(task.priority)
+        self.assertTrue(task.completed)
+        self.assertEqual(task.metadata.get("pri"), "B")  # Original priority preserved in metadata
+        
+        # String representation should not contain priority prefix but should include metadata
+        serialized = str(task)
+        self.assertEqual(
+            serialized, 
+            f"x {date.today().strftime('%Y-%m-%d')} 2023-01-01 Task with priority pri:B"
+        )
+        self.assertNotIn("(B)", serialized)
+        
+    def test_priority_removed_on_completion(self) -> None:
+        """Test priority removal behavior when tasks are completed."""
+        # Create two similar tasks
+        task1 = Task(description="First task", priority="A")
+        task2 = Task(description="Second task", priority="B")
+        
+        # Verify initial state
+        self.assertEqual(task1.priority, "A")
+        self.assertEqual(task2.priority, "B")
+        self.assertEqual(str(task1), "(A) First task")
+        self.assertEqual(str(task2), "(B) Second task")
+        
+        # Complete only task1
+        task1.complete()
+        
+        # task1's priority should be None, task2's should remain unchanged
+        # task1's priority should be None and stored in metadata, task2's should remain unchanged
+        self.assertIsNone(task1.priority)
+        self.assertEqual(task1.metadata.get("pri"), "A")  # Original priority preserved in metadata
+        self.assertEqual(task2.priority, "B")
+        
+        # Verify string representations
+        self.assertEqual(str(task1), f"x {date.today().strftime('%Y-%m-%d')} First task pri:A")
+        self.assertEqual(str(task2), "(B) Second task")
+        # Now complete task2
+        # Now complete task2
+        task2.complete()
+        self.assertIsNone(task2.priority)
+        self.assertEqual(task2.metadata.get("pri"), "B")  # Original priority preserved in metadata
+        self.assertEqual(str(task2), f"x {date.today().strftime('%Y-%m-%d')} Second task pri:B")
+    def test_complete_task_preserves_priority_in_metadata(self) -> None:
+        """Test that priority is preserved in metadata when a task is completed."""
+        # Create a task with priority
+        task = Task(description="Important task", priority="A")
+        
+        # Verify initial state
+        self.assertEqual(task.priority, "A")
+        self.assertEqual(task.metadata, {})
+        self.assertEqual(str(task), "(A) Important task")
+        
+        # Complete the task
+        task.complete()
+        
+        # Verify priority is removed and stored in metadata
+        self.assertIsNone(task.priority)
+        self.assertEqual(task.metadata.get("pri"), "A")
+        
+        # Verify string representation includes the metadata
+        serialized = str(task)
+        self.assertEqual(
+            serialized, 
+            f"x {date.today().strftime('%Y-%m-%d')} Important task pri:A"
+        )
+        self.assertNotIn("(A)", serialized)
 
 class TestSerialization(unittest.TestCase):
     def test_serialize_simple_task(self) -> None:
@@ -108,7 +200,7 @@ class TestSerialization(unittest.TestCase):
         )
         serialized = str(task)
         self.assertEqual(
-            serialized, "x (B) 2023-01-15 2023-01-01 Complex task +ptodo @coding"
+            serialized, "x 2023-01-15 2023-01-01 Complex task +ptodo @coding"
         )
 
 
