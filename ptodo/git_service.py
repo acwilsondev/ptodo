@@ -128,6 +128,10 @@ class GitService:
             TypeError: If file_path is not a Path object or None.
             ValueError: If file_path is outside the repository directory.
         """
+        # Check if file_path is a Path object or None first, before any other operations
+        if file_path is not None and not isinstance(file_path, Path):
+            raise TypeError("file_path must be a Path object or None")
+            
         if not self.is_repo():
             return False
 
@@ -136,12 +140,8 @@ class GitService:
             repo = pygit2.Repository(pygit2.discover_repository(str(self.repo_dir)))
 
             # Get the index
+            # Get the index
             index = repo.index
-
-            # Check if file_path is a Path object or None
-            if file_path is not None and not isinstance(file_path, Path):
-                raise TypeError("file_path must be a Path object or None")
-
             if file_path:
 
                 # Check if file_path is inside the repository
