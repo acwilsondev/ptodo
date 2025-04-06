@@ -28,7 +28,7 @@ class Task:
         parts = []
         if self.completed:
             parts.append("x")
-        if self.priority:
+        if self.priority and not self.completed:
             parts.append(f"({self.priority})")
         if self.completed and self.completion_date:
             parts.append(self.completion_date.strftime("%Y-%m-%d"))
@@ -142,13 +142,6 @@ def read_tasks(filename: str) -> list[Task]:
                 tasks.append(parse_task(line))
 
     return tasks
-
-
-def write_tasks(filename: str, tasks: list[Task]) -> None:
-    """Write tasks to a todo.txt file."""
-    with open(filename, "w", encoding="utf-8") as f:
-        for task in tasks:
-            f.write(f"{task}\n")
 
 
 def append_task(filename: str, task: Task) -> None:
