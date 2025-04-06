@@ -328,24 +328,30 @@ def cmd_next(args: argparse.Namespace) -> int:
     # Create a list of (index, task) tuples to track original positions
     indexed_tasks: list[tuple[int, Task]] = list(enumerate(all_tasks))
 
-    # Filter tasks but keep track of original indices
-    if args.project:
-        indexed_tasks = [(i, t) for i, t in indexed_tasks if args.project in t.projects]
-    if args.context:
-        indexed_tasks = [(i, t) for i, t in indexed_tasks if args.context in t.contexts]
+    # Parse filters from args.filters
+    project_filters = [f[1:] for f in args.filters if f.startswith("+")]
+    context_filters = [f[1:] for f in args.filters if f.startswith("@")]
 
-    # Always filter to show only incomplete tasks
+    # Filter out completed tasks first
     indexed_tasks = [(i, t) for i, t in indexed_tasks if not t.completed]
 
-    # Use a key function adapted for indexed_tasks that uses the same
-    # sorting logic as the sort_tasks function in core.py
-    def priority_key(item: tuple[int, Task]) -> str:
-        task = item[1]
-        if not task.priority:
-            return "Z"  # Tasks without priority come last
-        return task.priority
+    # Filter tasks but keep track of original indices
+    if project_filters:
+        indexed_tasks = [
+            (i, t) for i, t in indexed_tasks
+            if any(p in t.projects for p in project_filters)
+        ]
 
-    indexed_tasks.sort(key=priority_key)
+    if context_filters:
+        indexed_tasks = [
+            (i, t) for i, t in indexed_tasks
+            if any(c in t.contexts for c in context_filters)
+        ]
+
+    # Sort tasks by priority (None is lower than any letter)
+    indexed_tasks.sort(
+        key=lambda item: (item[1].priority or "Z", item[0])
+    )
 
     # Print the highest priority task, if any
     if not indexed_tasks:
@@ -503,16 +509,21 @@ def cmd_due(args: argparse.Namespace) -> int:
     due_tasks.sort(key=itemgetter(2))
 
     # Print tasks
+    # Print tasks
     if not due_tasks:
         if future_date is not None:
             print(
                 f"No tasks due within the next {soon_days} day{'s' if soon_days != 1 else ''}."
             )
         else:
-            print("No tasks due today or earlier.")
-        return 0
-
+            print("No due tasks found")
     for _, (original_idx, task, due_date) in enumerate(due_tasks, 1):
+        # Check if task is overdue
+        days_overdue = (datetime.date.today() - due_date).days
+        if days_overdue > 0:
+            day_str = "day" if days_overdue == 1 else "days"
+            print(f"{RED}OVERDUE - {days_overdue} {day_str} overdue{RESET}")
+        
         _show_task(original_idx, task)
         # Add a separator line between tasks for better readability
         print("")
@@ -534,6 +545,7 @@ def cmd_due(args: argparse.Namespace) -> int:
             if (datetime.date.today() - due_date).days > 0
         }
         if days_past:
+            # Show the details for overdue tasks
             overdue_str = ", ".join(
                 f"{days} day{'s' if days > 1 else ''}" for days in sorted(days_past)
             )

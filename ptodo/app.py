@@ -109,8 +109,11 @@ def main(args: Optional[List[str]] = None) -> int:
     tasks_next_parser = tasks_subparsers.add_parser(
         "next", help="Show highest priority task"
     )
-    tasks_next_parser.add_argument("--project", "-p", help="Filter by project")
-    tasks_next_parser.add_argument("--context", "-@", help="Filter by context")
+    tasks_next_parser.add_argument(
+        "filters",
+        nargs="*",
+        help="Optional filters (+project or @context)"
+    )
 
     # Tasks await command
     tasks_await_parser = tasks_subparsers.add_parser(
@@ -118,11 +121,16 @@ def main(args: Optional[List[str]] = None) -> int:
     )
     tasks_await_parser.add_argument("description", help="Task description")
     tasks_await_parser.add_argument("due_date", help="Due date in YYYY-MM-DD format")
-    tasks_await_parser.add_argument("--priority", help="Task priority (A-Z)")
+    tasks_await_parser.add_argument("--priority", "-p", help="Task priority (A-Z)")
 
     # Tasks edit command
-    tasks_subparsers.add_parser(
+    tasks_edit_parser = tasks_subparsers.add_parser(
         "edit", help="Open the todo file in your default editor"
+    )
+    tasks_edit_parser.add_argument(
+        "--quiet", "-q",
+        action="store_true",
+        help="Suppress informational output"
     )
 
     # Tasks due command
@@ -169,9 +177,9 @@ def main(args: Optional[List[str]] = None) -> int:
     add_parser.add_argument("text", help="Task text")
 
     # Done command
-    # Done command
     done_parser = subparsers.add_parser("done", help="Mark tasks as done")
     done_parser.add_argument("task_ids", type=int, nargs="+", help="Task ID(s)")
+
     # Remove command
     rm_parser = subparsers.add_parser("rm", help="Remove a task without archiving")
     rm_parser.add_argument("task_id", type=int, help="Task ID")
@@ -198,10 +206,12 @@ def main(args: Optional[List[str]] = None) -> int:
     subparsers.add_parser("sort", help="Sort tasks by priority")
 
     # Next command
-    # Next command
     next_parser = subparsers.add_parser("next", help="Show highest priority task")
-    next_parser.add_argument("--project", "-p", help="Filter by project")
-    next_parser.add_argument("--context", "-@", help="Filter by context")
+    next_parser.add_argument(
+        "filters",
+        nargs="*",
+        help="Optional filters (+project or @context)"
+    )
 
     # Await command
     await_parser = subparsers.add_parser(
@@ -209,7 +219,20 @@ def main(args: Optional[List[str]] = None) -> int:
     )
     await_parser.add_argument("description", help="Task description")
     await_parser.add_argument("due_date", help="Due date in YYYY-MM-DD format")
-    await_parser.add_argument("--priority", help="Task priority (A-Z)")
+    await_parser.add_argument("--priority", "-p", help="Task priority (A-Z)")
+    # Due command
+    due_parser = subparsers.add_parser("due", help="Show tasks due today or earlier")
+    due_parser.add_argument(
+        "--quiet", "-q",
+        action="store_true",
+        help="Suppress informational output"
+    )
+    due_parser.add_argument(
+        "--soon", "-s",
+        type=int,
+        metavar="DAYS",
+        help="Show tasks due within the specified number of days"
+    )
     # Git commands
     git_parser = subparsers.add_parser("git", help="Git operations")
     git_subparsers = git_parser.add_subparsers(
@@ -269,9 +292,13 @@ def main(args: Optional[List[str]] = None) -> int:
 
     config_subparsers.add_parser("reset", help="Reset configuration to defaults")
 
-    # Help command
     # Edit command
-    subparsers.add_parser("edit", help="Open the todo file in your default editor")
+    edit_parser = subparsers.add_parser("edit", help="Open the todo file in your default editor")
+    edit_parser.add_argument(
+        "--quiet", "-q",
+        action="store_true",
+        help="Suppress informational output"
+    )
 
     # Help command
     subparsers.add_parser("help", help="Show this help message")
@@ -347,6 +374,9 @@ def main(args: Optional[List[str]] = None) -> int:
     elif parsed_args.command == "await":
         warn_deprecated_command("ptodo await", "ptodo tasks await")
         return int(cmd_await(parsed_args))
+    elif parsed_args.command == "due":
+        warn_deprecated_command("ptodo due", "ptodo tasks due")
+        return int(cmd_due(parsed_args))
     elif parsed_args.command == "config":
         return int(cmd_config(parsed_args))
     elif parsed_args.command == "project" and parsed_args.project_command == "mv":
