@@ -212,14 +212,14 @@ class TestGitServicePull:
 
                 def __iter__(self):
                     return iter(self.remotes.keys())
-                
+
                 def __len__(self):
                     return len(self.remotes)
-                
+
                 # Allow item access by remote name
                 def __getitem__(self, key):
                     return self.remotes[key]
-            
+
             # Set repo.remotes to be our mock RemoteCollection
             mock_repo.remotes = MockRemoteCollection()
 
@@ -227,7 +227,7 @@ class TestGitServicePull:
             mock_repo.head = MagicMock()
             mock_repo.head.shorthand = "master"  # Current branch
             mock_repo.head.target = "local-commit-id"
-            
+
             # Mock remote reference
             mock_remote_branch = MagicMock()
             mock_remote_branch.target = "remote-commit-id"

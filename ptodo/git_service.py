@@ -268,7 +268,7 @@ class GitService:
                 return False
 
             # Get the first remote (typically "origin")
-            remote_name = next(iter(getattr(repo, "remotes").keys()))
+            remote_name = next(iter(getattr(repo, "remotes")))
             remote = getattr(repo, "remotes")[remote_name]
 
             # Find the current branch
@@ -346,7 +346,7 @@ class GitService:
                 return False
 
             # Get the first remote (typically "origin")
-            remote_name = next(iter(getattr(repo, "remotes").keys()))
+            remote_name = next(iter(getattr(repo, "remotes")))
             remote = getattr(repo, "remotes")[remote_name]
 
             # Get the current branch to push
