@@ -1,0 +1,45 @@
+[run]
+source = ptodo
+branch = True
+omit =
+    # Omit test files
+    */tests/*
+    # Omit setup.py and other non-production code
+    setup.py
+    conftest.py
+    # Omit virtual environments
+    */.venv/*
+    */venv/*
+    # Omit any __init__.py files
+    */__init__.py
+
+[report]
+# Regexes for lines to exclude from consideration
+exclude_lines =
+    # Don't complain about missing debug-only code
+    def __repr__
+    if self\.debug
+    
+    # Don't complain if tests don't hit defensive assertion code
+    raise AssertionError
+    raise NotImplementedError
+    
+    # Don't complain if non-runnable code isn't run
+    if 0:
+    if __name__ == .__main__.:
+    
+    # Don't complain about abstract methods
+    @(abc\.)?abstractmethod
+
+# Show missing lines in reports
+show_missing = True
+
+# Fail under threshold for overall coverage
+fail_under = 80
+
+[html]
+directory = coverage_html_report
+
+[xml]
+output = coverage.xml
+

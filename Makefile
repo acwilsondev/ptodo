@@ -13,11 +13,11 @@ setup: ## Install development dependencies
 	$(PIP) install -e ".[dev]"
 	$(PIP) install -e ".[test]"
 
-test: ## Run tests with pytest
-	pytest
+test: ## Run tests with pytest and coverage checks
+	pytest --cov=$(PKG_NAME) --cov-report=term-missing --cov-branch --cov-fail-under=80
 
-coverage: ## Run tests with coverage report
-	pytest --cov=$(PKG_NAME) --cov-report=term-missing --cov-report=xml
+coverage: ## Run tests with detailed coverage report
+	pytest --cov=$(PKG_NAME) --cov-report=term-missing --cov-report=html --cov-report=xml --cov-branch --cov-fail-under=80
 
 lint: ## Run linting checks
 	isort --check-only --profile black $(PKG_NAME) tests
