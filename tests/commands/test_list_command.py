@@ -56,4 +56,3 @@ class TestListCommand:
         assert "test task" in captured.out
         assert "test task with a context" in captured.out
         assert "(A)" in captured.out
-

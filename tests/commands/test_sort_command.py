@@ -31,7 +31,9 @@ class TestSortCommand:
             f.write("(B) Medium priority task +project2 @context2\n")
             f.write("(A) Highest priority task +project1 @context1\n")
             f.write("(C) Lower priority task +project1 @context2\n")
-            f.write("x 2023-05-04 (D) Completed task\n")  # Should remain at its position
+            f.write(
+                "x 2023-05-04 (D) Completed task\n"
+            )  # Should remain at its position
             f.write("Another no priority task +project4 @context4\n")
         # Set the environment variable to use our test file
         os.environ["TODO_FILE"] = todo_file
@@ -68,7 +70,7 @@ class TestSortCommand:
             "(C) Lower priority task +project1 @context2",
             "x 2023-05-04 (D) Completed task",  # Completed tasks usually maintain position
             "No priority task first +project3 @context3",
-            "Another no priority task +project4 @context4"
+            "Another no priority task +project4 @context4",
         ]
 
         # Run the sort command
@@ -78,25 +80,27 @@ class TestSortCommand:
         # Check result
         assert result == 0
         assert "Sorted" in captured.out
-        
+
         # Verify the file content is sorted correctly
         with open(todo_file, "r") as f:
             sorted_content = f.read().strip().split("\n")
-        
+
         # Assert that all expected tasks are present
         for expected_line in expected_content:
             assert any(expected_line in line for line in sorted_content)
-        
+
         # Check the priority order is correct
         priorities = []
         for line in sorted_content:
             if line.startswith("x"):
                 continue  # Skip completed tasks
             if "(" in line and ")" in line and line.index("(") < line.index(")"):
-                priorities.append(line[line.index("(")+1:line.index(")")])
+                priorities.append(line[line.index("(") + 1 : line.index(")")])
             else:
-                priorities.append("Z")  # No priority tasks should be after all prioritized tasks
-                
+                priorities.append(
+                    "Z"
+                )  # No priority tasks should be after all prioritized tasks
+
         # Verify priorities are in correct order
         assert sorted(priorities) == priorities
 
@@ -116,7 +120,7 @@ class TestSortCommand:
         # Get all the expected task content before sorting
         with open(todo_file, "r") as f:
             original_content = f.read().strip().split("\n")
-        
+
         # Run the sort command
         result = main()
         captured = capsys.readouterr()
@@ -124,27 +128,27 @@ class TestSortCommand:
         # Verify the file content after sorting
         with open(todo_file, "r") as f:
             sorted_content = f.read().strip().split("\n")
-        
+
         # Check that all tasks are preserved (just in different order)
         assert len(sorted_content) == len(original_content)
-        
+
         # Each task from the original file should exist in sorted content, just in different order
         for task in original_content:
             assert task in sorted_content
-            
+
         # Projects and contexts should be preserved
         projects_contexts_before = []
         for line in original_content:
-            projects = [word for word in line.split() if word.startswith('+')]
-            contexts = [word for word in line.split() if word.startswith('@')]
+            projects = [word for word in line.split() if word.startswith("+")]
+            contexts = [word for word in line.split() if word.startswith("@")]
             projects_contexts_before.extend(projects + contexts)
-            
+
         projects_contexts_after = []
         for line in sorted_content:
-            projects = [word for word in line.split() if word.startswith('+')]
-            contexts = [word for word in line.split() if word.startswith('@')]
+            projects = [word for word in line.split() if word.startswith("+")]
+            contexts = [word for word in line.split() if word.startswith("@")]
             projects_contexts_after.extend(projects + contexts)
-            
+
         assert sorted(projects_contexts_before) == sorted(projects_contexts_after)
 
     @patch("sys.argv")
@@ -174,4 +178,3 @@ class TestSortCommand:
         # Check result
         assert result == 0
         assert "No tasks found" in captured.out
-

@@ -99,4 +99,3 @@ class TestRmCommand:
         with open(todo_file, "r") as f:
             final_content = f.read()
         assert final_content == initial_content
-

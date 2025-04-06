@@ -1,8 +1,10 @@
 import argparse
 import unittest
+from typing import Any, Callable, Dict, Generator
 from unittest.mock import MagicMock, patch
 
 import pytest
+from pytest import CaptureFixture
 
 from ptodo.commands.config_commands import cmd_config
 from ptodo.config import DEFAULT_CONFIG
@@ -12,7 +14,7 @@ class TestConfigCommands:
     """Tests for the configuration commands in ptodo."""
 
     @pytest.fixture
-    def mock_config_deps(self):
+    def mock_config_deps(self) -> Generator[Dict[str, MagicMock], None, None]:
         """Mock configuration dependencies."""
         with patch("ptodo.commands.config_commands.load_config") as mock_load, patch(
             "ptodo.commands.config_commands.get_config"
@@ -30,7 +32,7 @@ class TestConfigCommands:
             }
 
             # Configure get_config to return values based on key
-            def mock_get_config(key):
+            def mock_get_config(key: str) -> Any:
                 if key == "default_view":
                     return "all"
                 elif key == "color_enabled":
@@ -51,7 +53,9 @@ class TestConfigCommands:
                 "update_config": mock_update,
             }
 
-    def test_show_command(self, mock_config_deps, capsys):
+    def test_show_command(
+        self, mock_config_deps: Dict[str, MagicMock], capsys: CaptureFixture[str]
+    ) -> None:
         """Test the 'show' command."""
         # Create args
         args = argparse.Namespace(config_command="show")
@@ -68,7 +72,9 @@ class TestConfigCommands:
         assert "color_enabled: True" in captured.out
         assert "priority_colors:" in captured.out
 
-    def test_get_command_existing_key(self, mock_config_deps, capsys):
+    def test_get_command_existing_key(
+        self, mock_config_deps: Dict[str, MagicMock], capsys: CaptureFixture[str]
+    ) -> None:
         """Test the 'get' command with an existing key."""
         # Create args
         args = argparse.Namespace(config_command="get", key="default_view")
@@ -82,7 +88,9 @@ class TestConfigCommands:
         assert result == 0
         assert "default_view: all" in captured.out
 
-    def test_get_command_nonexistent_key(self, mock_config_deps, capsys):
+    def test_get_command_nonexistent_key(
+        self, mock_config_deps: Dict[str, MagicMock], capsys: CaptureFixture[str]
+    ) -> None:
         """Test the 'get' command with a nonexistent key."""
         # Create args
         args = argparse.Namespace(config_command="get", key="unknown_key")
@@ -96,7 +104,9 @@ class TestConfigCommands:
         assert result == 1
         assert "No configuration setting found" in captured.out
 
-    def test_set_command_boolean_true(self, mock_config_deps, capsys):
+    def test_set_command_boolean_true(
+        self, mock_config_deps: Dict[str, MagicMock], capsys: CaptureFixture[str]
+    ) -> None:
         """Test the 'set' command with a boolean value (true)."""
         # Test different boolean representations
         boolean_values = ["true", "yes", "1", "True", "YES"]
@@ -116,7 +126,9 @@ class TestConfigCommands:
             assert result == 0
             assert "has been set to 'True'" in captured.out
 
-    def test_set_command_boolean_false(self, mock_config_deps, capsys):
+    def test_set_command_boolean_false(
+        self, mock_config_deps: Dict[str, MagicMock], capsys: CaptureFixture[str]
+    ) -> None:
         """Test the 'set' command with a boolean value (false)."""
         # Test different boolean representations
         boolean_values = ["false", "no", "0", "False", "NO"]
@@ -136,7 +148,9 @@ class TestConfigCommands:
             assert result == 0
             assert "has been set to 'False'" in captured.out
 
-    def test_set_command_integer(self, mock_config_deps, capsys):
+    def test_set_command_integer(
+        self, mock_config_deps: Dict[str, MagicMock], capsys: CaptureFixture[str]
+    ) -> None:
         """Test the 'set' command with an integer value."""
         # Create args
         args = argparse.Namespace(config_command="set", key="max_tasks", value="42")
@@ -150,7 +164,9 @@ class TestConfigCommands:
         assert result == 0
         assert "has been set to '42'" in captured.out
 
-    def test_set_command_float(self, mock_config_deps, capsys):
+    def test_set_command_float(
+        self, mock_config_deps: Dict[str, MagicMock], capsys: CaptureFixture[str]
+    ) -> None:
         """Test the 'set' command with a float value."""
         # Create args
         args = argparse.Namespace(config_command="set", key="timeout", value="3.14")
@@ -164,7 +180,9 @@ class TestConfigCommands:
         assert result == 0
         assert "has been set to '3.14'" in captured.out
 
-    def test_set_command_string(self, mock_config_deps, capsys):
+    def test_set_command_string(
+        self, mock_config_deps: Dict[str, MagicMock], capsys: CaptureFixture[str]
+    ) -> None:
         """Test the 'set' command with a string value."""
         # Create args
         args = argparse.Namespace(config_command="set", key="editor", value="vim")
@@ -178,7 +196,9 @@ class TestConfigCommands:
         assert result == 0
         assert "has been set to 'vim'" in captured.out
 
-    def test_set_command_error(self, mock_config_deps, capsys):
+    def test_set_command_error(
+        self, mock_config_deps: Dict[str, MagicMock], capsys: CaptureFixture[str]
+    ) -> None:
         """Test the 'set' command with an error during setting."""
         # Setup mock to raise an exception
         mock_config_deps["set_config"].side_effect = ValueError("Invalid value")
@@ -199,7 +219,9 @@ class TestConfigCommands:
         assert result == 2
         assert "Error setting configuration" in captured.out
 
-    def test_reset_command(self, mock_config_deps, capsys):
+    def test_reset_command(
+        self, mock_config_deps: Dict[str, MagicMock], capsys: CaptureFixture[str]
+    ) -> None:
         """Test the 'reset' command."""
         # Create args
         args = argparse.Namespace(config_command="reset")
@@ -213,7 +235,9 @@ class TestConfigCommands:
         assert result == 0
         assert "Configuration has been reset to default values" in captured.out
 
-    def test_reset_command_error(self, mock_config_deps, capsys):
+    def test_reset_command_error(
+        self, mock_config_deps: Dict[str, MagicMock], capsys: CaptureFixture[str]
+    ) -> None:
         """Test the 'reset' command with an error during update."""
         # Setup mock to raise an exception
         mock_config_deps["update_config"].side_effect = ValueError("Update error")
@@ -230,7 +254,9 @@ class TestConfigCommands:
         assert result == 2
         assert "Error resetting configuration" in captured.out
 
-    def test_unknown_command(self, mock_config_deps, capsys):
+    def test_unknown_command(
+        self, mock_config_deps: Dict[str, MagicMock], capsys: CaptureFixture[str]
+    ) -> None:
         """Test an unknown configuration command."""
         # Create args
         args = argparse.Namespace(config_command="unknown_command")
@@ -243,7 +269,9 @@ class TestConfigCommands:
         assert result == 3
         assert "Unknown configuration command" in captured.out
 
-    def test_unexpected_exception(self, mock_config_deps, capsys):
+    def test_unexpected_exception(
+        self, mock_config_deps: Dict[str, MagicMock], capsys: CaptureFixture[str]
+    ) -> None:
         """Test unexpected exception handling."""
         # Setup mocks to raise an exception
         mock_config_deps["load_config"].side_effect = Exception("Unexpected error")

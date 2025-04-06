@@ -57,4 +57,3 @@ class TestPriCommand:
 
         assert "(A) test task with a context" in content
         assert "updated" in captured.out.lower()
-

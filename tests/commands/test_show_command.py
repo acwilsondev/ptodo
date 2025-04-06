@@ -28,7 +28,9 @@ class TestShowCommand:
         with open(todo_file, "w") as f:
             f.write("(A) Test task with priority\n")
             f.write("test task +test-project @work due:2023-12-31\n")
-            f.write("test task with @multiple @contexts +and +multiple-projects effort:2\n")
+            f.write(
+                "test task with @multiple @contexts +and +multiple-projects effort:2\n"
+            )
         # Set the environment variable to use our test file
         os.environ["TODO_FILE"] = todo_file
         yield todo_file
@@ -56,7 +58,7 @@ class TestShowCommand:
 
         # Check result
         assert result == 0
-        
+
         # Verify task details are displayed
         output = captured.out
         assert "Task #2" in output
@@ -67,7 +69,7 @@ class TestShowCommand:
         assert "Projects:" in output
         assert "Contexts:" in output
         assert "Metadata:" in output
-        
+
         # Verify raw format is also displayed
         assert "Raw format:" in output
 
@@ -91,7 +93,7 @@ class TestShowCommand:
 
         # Check result
         assert result == 0
-        
+
         # Verify task details are displayed
         output = captured.out
         assert "Task #3" in output
@@ -126,4 +128,3 @@ class TestShowCommand:
         assert result != 0  # Should return non-zero exit code for error
         assert "Error" in captured.out
         assert "out of range" in captured.out
-

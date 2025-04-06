@@ -338,20 +338,20 @@ def cmd_next(args: argparse.Namespace) -> int:
     # Filter tasks but keep track of original indices
     if project_filters:
         indexed_tasks = [
-            (i, t) for i, t in indexed_tasks
+            (i, t)
+            for i, t in indexed_tasks
             if any(p in t.projects for p in project_filters)
         ]
 
     if context_filters:
         indexed_tasks = [
-            (i, t) for i, t in indexed_tasks
+            (i, t)
+            for i, t in indexed_tasks
             if any(c in t.contexts for c in context_filters)
         ]
 
     # Sort tasks by priority (None is lower than any letter)
-    indexed_tasks.sort(
-        key=lambda item: (item[1].priority or "Z", item[0])
-    )
+    indexed_tasks.sort(key=lambda item: (item[1].priority or "Z", item[0]))
 
     # Print the highest priority task, if any
     if not indexed_tasks:
@@ -523,7 +523,7 @@ def cmd_due(args: argparse.Namespace) -> int:
         if days_overdue > 0:
             day_str = "day" if days_overdue == 1 else "days"
             print(f"{RED}OVERDUE - {days_overdue} {day_str} overdue{RESET}")
-        
+
         _show_task(original_idx, task)
         # Add a separator line between tasks for better readability
         print("")

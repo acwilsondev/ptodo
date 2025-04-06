@@ -110,9 +110,7 @@ def main(args: Optional[List[str]] = None) -> int:
         "next", help="Show highest priority task"
     )
     tasks_next_parser.add_argument(
-        "filters",
-        nargs="*",
-        help="Optional filters (+project or @context)"
+        "filters", nargs="*", help="Optional filters (+project or @context)"
     )
 
     # Tasks await command
@@ -128,9 +126,7 @@ def main(args: Optional[List[str]] = None) -> int:
         "edit", help="Open the todo file in your default editor"
     )
     tasks_edit_parser.add_argument(
-        "--quiet", "-q",
-        action="store_true",
-        help="Suppress informational output"
+        "--quiet", "-q", action="store_true", help="Suppress informational output"
     )
 
     # Tasks due command
@@ -208,9 +204,7 @@ def main(args: Optional[List[str]] = None) -> int:
     # Next command
     next_parser = subparsers.add_parser("next", help="Show highest priority task")
     next_parser.add_argument(
-        "filters",
-        nargs="*",
-        help="Optional filters (+project or @context)"
+        "filters", nargs="*", help="Optional filters (+project or @context)"
     )
 
     # Await command
@@ -223,15 +217,14 @@ def main(args: Optional[List[str]] = None) -> int:
     # Due command
     due_parser = subparsers.add_parser("due", help="Show tasks due today or earlier")
     due_parser.add_argument(
-        "--quiet", "-q",
-        action="store_true",
-        help="Suppress informational output"
+        "--quiet", "-q", action="store_true", help="Suppress informational output"
     )
     due_parser.add_argument(
-        "--soon", "-s",
+        "--soon",
+        "-s",
         type=int,
         metavar="DAYS",
-        help="Show tasks due within the specified number of days"
+        help="Show tasks due within the specified number of days",
     )
     # Git commands
     git_parser = subparsers.add_parser("git", help="Git operations")
@@ -293,11 +286,11 @@ def main(args: Optional[List[str]] = None) -> int:
     config_subparsers.add_parser("reset", help="Reset configuration to defaults")
 
     # Edit command
-    edit_parser = subparsers.add_parser("edit", help="Open the todo file in your default editor")
+    edit_parser = subparsers.add_parser(
+        "edit", help="Open the todo file in your default editor"
+    )
     edit_parser.add_argument(
-        "--quiet", "-q",
-        action="store_true",
-        help="Suppress informational output"
+        "--quiet", "-q", action="store_true", help="Suppress informational output"
     )
 
     # Help command

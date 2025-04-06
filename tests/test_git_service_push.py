@@ -3,10 +3,12 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
+from typing import Any, Dict, Generator
 from unittest.mock import MagicMock, patch
 
 import pygit2
 import pytest
+from pytest import CaptureFixture
 
 from ptodo.git_service import GitService
 from ptodo.utils import get_ptodo_directory
@@ -16,26 +18,28 @@ class TestGitServicePush:
     """Tests for the GitService class using pygit2."""
 
     @pytest.fixture
-    def temp_dir(self):
+    def temp_dir(self) -> Generator[Path, None, None]:
         """Create a temporary directory for testing."""
         temp_dir = tempfile.mkdtemp()
         yield Path(temp_dir)
         shutil.rmtree(temp_dir)
 
     @pytest.fixture
-    def mock_repo(self):
+    def mock_repo(self) -> Generator[MagicMock, None, None]:
         """Mock the pygit2.Repository class."""
         with patch("pygit2.Repository") as mock_repo:
             yield mock_repo
 
     @pytest.fixture
-    def mock_discover_repository(self):
+    def mock_discover_repository(self) -> Generator[MagicMock, None, None]:
         """Mock the pygit2.discover_repository function."""
         with patch("pygit2.discover_repository") as mock_discover:
             yield mock_discover
 
     # Tests for push method
-    def test_push_success(self, mock_discover_repository, temp_dir):
+    def test_push_success(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test successful push to remote."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -64,7 +68,9 @@ class TestGitServicePush:
             assert result is True
             mock_remote.push.assert_called_once()
 
-    def test_push_no_remote(self, mock_discover_repository, temp_dir):
+    def test_push_no_remote(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test push when repository has no remotes."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -84,7 +90,9 @@ class TestGitServicePush:
             # Assert
             assert result is False
 
-    def test_push_authentication_error(self, mock_discover_repository, temp_dir):
+    def test_push_authentication_error(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test push with authentication errors."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -112,7 +120,9 @@ class TestGitServicePush:
             assert result is False
             mock_remote.push.assert_called_once()
 
-    def test_push_non_fast_forward(self, mock_discover_repository, temp_dir):
+    def test_push_non_fast_forward(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test push with non-fast-forward errors."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -142,7 +152,7 @@ class TestGitServicePush:
             assert result is False
             mock_remote.push.assert_called_once()
 
-    def test_push_not_a_repository(self, mock_discover_repository):
+    def test_push_not_a_repository(self, mock_discover_repository: MagicMock) -> None:
         """Test push when not in a git repository."""
         # Arrange
         repo_path = Path("/not/a/repo")

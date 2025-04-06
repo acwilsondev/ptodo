@@ -87,7 +87,9 @@ class TestGitServiceRemote:
             # Setup the __contains__ method to return True for "origin"
             remotes_mock.__contains__ = lambda self, key: key == "origin"
             # Setup the __getitem__ method to return mock_remote for "origin"
-            remotes_mock.__getitem__ = lambda self, key: mock_remote if key == "origin" else None
+            remotes_mock.__getitem__ = lambda self, key: (
+                mock_remote if key == "origin" else None
+            )
             # Setup the delete and create methods
             remotes_mock.delete = MagicMock()
             remotes_mock.create = MagicMock(return_value=MagicMock())

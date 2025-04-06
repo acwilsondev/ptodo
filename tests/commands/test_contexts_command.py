@@ -53,4 +53,3 @@ class TestContextsCommand:
         captured = capsys.readouterr()
 
         assert "home" in captured.out
-

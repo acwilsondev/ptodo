@@ -81,4 +81,3 @@ class TestArchiveCommand:
         assert "Test task" not in todo_content
         assert "Test task" in done_content
         assert "archived" in captured.out.lower() or "moved" in captured.out.lower()
-

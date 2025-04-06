@@ -3,10 +3,12 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
+from typing import Any, Dict, Generator
 from unittest.mock import MagicMock, patch
 
 import pygit2
 import pytest
+from pytest import CaptureFixture
 
 from ptodo.git_service import GitService
 from ptodo.utils import get_ptodo_directory
@@ -16,26 +18,28 @@ class TestGitServiceStage:
     """Tests for the GitService class using pygit2."""
 
     @pytest.fixture
-    def temp_dir(self):
+    def temp_dir(self) -> Generator[Path, None, None]:
         """Create a temporary directory for testing."""
         temp_dir = tempfile.mkdtemp()
         yield Path(temp_dir)
         shutil.rmtree(temp_dir)
 
     @pytest.fixture
-    def mock_repo(self):
+    def mock_repo(self) -> Generator[MagicMock, None, None]:
         """Mock the pygit2.Repository class."""
         with patch("pygit2.Repository") as mock_repo:
             yield mock_repo
 
     @pytest.fixture
-    def mock_discover_repository(self):
+    def mock_discover_repository(self) -> Generator[MagicMock, None, None]:
         """Mock the pygit2.discover_repository function."""
         with patch("pygit2.discover_repository") as mock_discover:
             yield mock_discover
 
     # Tests for stage_changes method
-    def test_stage_specific_file_success(self, mock_discover_repository, temp_dir):
+    def test_stage_specific_file_success(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test staging a specific file successfully."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -57,7 +61,9 @@ class TestGitServiceStage:
             mock_index.add.assert_called_once_with(str(file_path.relative_to(temp_dir)))
             mock_index.write.assert_called_once()
 
-    def test_stage_nonexistent_file(self, mock_discover_repository, temp_dir):
+    def test_stage_nonexistent_file(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test staging a file that doesn't exist."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -83,7 +89,9 @@ class TestGitServiceStage:
                 str(nonexistent_file.relative_to(temp_dir))
             )
 
-    def test_stage_path_outside_repository(self, mock_discover_repository, temp_dir):
+    def test_stage_path_outside_repository(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test staging a path outside the repository."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -96,7 +104,9 @@ class TestGitServiceStage:
             with pytest.raises(ValueError):
                 git_service.stage_changes(external_file)
 
-    def test_stage_all_changes_success(self, mock_discover_repository, temp_dir):
+    def test_stage_all_changes_success(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test staging all changes successfully."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -118,7 +128,9 @@ class TestGitServiceStage:
             mock_index.add_all.assert_called_once()
             mock_index.write.assert_called_once()
 
-    def test_stage_no_changes(self, mock_discover_repository, temp_dir):
+    def test_stage_no_changes(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test staging when there are no changes."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -140,7 +152,9 @@ class TestGitServiceStage:
             # Assert
             assert result is True  # Should still return True even with no changes
 
-    def test_stage_dirty_working_directory(self, mock_discover_repository, temp_dir):
+    def test_stage_dirty_working_directory(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test staging with a dirty working directory."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -167,7 +181,7 @@ class TestGitServiceStage:
             mock_index.add_all.assert_called_once()
             mock_index.write.assert_called_once()
 
-    def test_stage_changes_not_repo(self, mock_discover_repository):
+    def test_stage_changes_not_repo(self, mock_discover_repository: MagicMock) -> None:
         """Test stage_changes when not in a git repository."""
         # Arrange
         repo_path = Path("/not/a/repo")
@@ -180,7 +194,9 @@ class TestGitServiceStage:
         # Assert
         assert result is False
 
-    def test_stage_changes_repo_access_error(self, mock_discover_repository, temp_dir):
+    def test_stage_changes_repo_access_error(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test stage_changes when repository access fails."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -196,7 +212,9 @@ class TestGitServiceStage:
             # Assert
             assert result is False
 
-    def test_stage_changes_invalid_path_type(self, mock_discover_repository, temp_dir):
+    def test_stage_changes_invalid_path_type(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test stage_changes with invalid path type."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")

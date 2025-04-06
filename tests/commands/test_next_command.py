@@ -83,7 +83,9 @@ class TestNextCommand:
     ) -> None:
         """Test next command with project filter."""
         mock_get_path.return_value = Path(todo_file)
-        mock_argv.__getitem__.side_effect = lambda idx: ["ptodo", "next", "+project2"][idx]
+        mock_argv.__getitem__.side_effect = lambda idx: ["ptodo", "next", "+project2"][
+            idx
+        ]
 
         # Run the next command with project filter
         result = main()
@@ -107,7 +109,9 @@ class TestNextCommand:
     ) -> None:
         """Test next command with context filter."""
         mock_get_path.return_value = Path(todo_file)
-        mock_argv.__getitem__.side_effect = lambda idx: ["ptodo", "next", "@context2"][idx]
+        mock_argv.__getitem__.side_effect = lambda idx: ["ptodo", "next", "@context2"][
+            idx
+        ]
 
         # Run the next command with context filter
         result = main()
@@ -131,7 +135,11 @@ class TestNextCommand:
     ) -> None:
         """Test next command when no tasks match the filter."""
         mock_get_path.return_value = Path(todo_file)
-        mock_argv.__getitem__.side_effect = lambda idx: ["ptodo", "next", "+nonexistent-project"][idx]
+        mock_argv.__getitem__.side_effect = lambda idx: [
+            "ptodo",
+            "next",
+            "+nonexistent-project",
+        ][idx]
 
         # Run the next command with a filter that matches no tasks
         result = main()
@@ -168,4 +176,3 @@ class TestNextCommand:
         # Check result
         assert result == 0
         assert "No matching tasks found" in captured.out
-

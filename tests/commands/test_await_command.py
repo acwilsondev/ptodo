@@ -46,7 +46,10 @@ class TestAwaitCommand:
         """Test the await command creates a task with waiting context and due date."""
         mock_get_path.return_value = Path(todo_file)
         mock_argv.__getitem__.side_effect = lambda idx: [
-            "ptodo", "await", "Waiting for response", "2023-12-31"
+            "ptodo",
+            "await",
+            "Waiting for response",
+            "2023-12-31",
         ][idx]
 
         # Run the await command
@@ -60,7 +63,7 @@ class TestAwaitCommand:
         # Verify the file content
         with open(todo_file, "r") as f:
             content = f.read()
-        
+
         # Check task properties
         assert "Waiting for response" in content
         assert "@waiting" in content
@@ -78,7 +81,12 @@ class TestAwaitCommand:
         """Test the await command with a priority specified."""
         mock_get_path.return_value = Path(todo_file)
         mock_argv.__getitem__.side_effect = lambda idx: [
-            "ptodo", "await", "Waiting for urgent response", "2023-12-31", "-p", "A"
+            "ptodo",
+            "await",
+            "Waiting for urgent response",
+            "2023-12-31",
+            "-p",
+            "A",
         ][idx]
 
         # Run the await command with priority
@@ -92,7 +100,7 @@ class TestAwaitCommand:
         # Verify the file content
         with open(todo_file, "r") as f:
             content = f.read()
-        
+
         # Check task properties
         assert "Waiting for urgent response" in content
         assert "@waiting" in content
@@ -111,7 +119,10 @@ class TestAwaitCommand:
         """Test the await command with an invalid date format."""
         mock_get_path.return_value = Path(todo_file)
         mock_argv.__getitem__.side_effect = lambda idx: [
-            "ptodo", "await", "Waiting for response", "invalid-date"
+            "ptodo",
+            "await",
+            "Waiting for response",
+            "invalid-date",
         ][idx]
 
         # Run the await command with invalid date
@@ -141,7 +152,10 @@ class TestAwaitCommand:
         mock_get_path.return_value = Path(todo_file)
         # Use a date far in the future to avoid test expiration
         mock_argv.__getitem__.side_effect = lambda idx: [
-            "ptodo", "await", "Waiting for future response", "2030-12-31"
+            "ptodo",
+            "await",
+            "Waiting for future response",
+            "2030-12-31",
         ][idx]
 
         # Run the await command with future date
@@ -155,7 +169,7 @@ class TestAwaitCommand:
         # Verify the file content
         with open(todo_file, "r") as f:
             content = f.read()
-        
+
         # Check task properties and metadata
         assert "Waiting for future response" in content
         assert "@waiting" in content
@@ -173,7 +187,10 @@ class TestAwaitCommand:
         """Test the await command with a task that includes other metadata."""
         mock_get_path.return_value = Path(todo_file)
         mock_argv.__getitem__.side_effect = lambda idx: [
-            "ptodo", "await", "Waiting for response from John effort:3", "2023-12-31"
+            "ptodo",
+            "await",
+            "Waiting for response from John effort:3",
+            "2023-12-31",
         ][idx]
 
         # Run the await command with a task that has additional metadata
@@ -187,10 +204,9 @@ class TestAwaitCommand:
         # Verify the file content
         with open(todo_file, "r") as f:
             content = f.read()
-        
+
         # Check task properties and all metadata
         assert "Waiting for response from John" in content
         assert "@waiting" in content
         assert "due:2023-12-31" in content
         assert "effort:3" in content  # Should preserve the effort metadata
-

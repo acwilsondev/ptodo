@@ -51,4 +51,3 @@ class TestAddCommand:
 
         assert "Test task +Test @CLI" in content
         assert "Task added" in captured.out or "Added:" in captured.out
-

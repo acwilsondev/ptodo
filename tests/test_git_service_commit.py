@@ -3,10 +3,12 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch, PropertyMock
+from typing import Any, Dict, Generator, List, Tuple
+from unittest.mock import MagicMock, PropertyMock, patch
 
 import pygit2
 import pytest
+from pytest import CaptureFixture
 
 from ptodo.git_service import GitService
 from ptodo.utils import get_ptodo_directory
@@ -16,26 +18,28 @@ class TestGitServiceCommit:
     """Tests for the GitService class using pygit2."""
 
     @pytest.fixture
-    def temp_dir(self):
+    def temp_dir(self) -> Generator[Path, None, None]:
         """Create a temporary directory for testing."""
         temp_dir = tempfile.mkdtemp()
         yield Path(temp_dir)
         shutil.rmtree(temp_dir)
 
     @pytest.fixture
-    def mock_repo(self):
+    def mock_repo(self) -> Generator[MagicMock, None, None]:
         """Mock the pygit2.Repository class."""
         with patch("pygit2.Repository") as mock_repo:
             yield mock_repo
 
     @pytest.fixture
-    def mock_discover_repository(self):
+    def mock_discover_repository(self) -> Generator[MagicMock, None, None]:
         """Mock the pygit2.discover_repository function."""
         with patch("pygit2.discover_repository") as mock_discover:
             yield mock_discover
 
     # Tests for commit method
-    def test_commit_success(self, mock_discover_repository, temp_dir):
+    def test_commit_success(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test committing staged changes successfully."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -73,7 +77,9 @@ class TestGitServiceCommit:
                 # The message is passed as the 4th positional argument (index 3)
                 assert message == args[3]
 
-    def test_commit_verify_author_committer(self, mock_discover_repository, temp_dir):
+    def test_commit_verify_author_committer(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test that author and committer information is set correctly."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -85,10 +91,12 @@ class TestGitServiceCommit:
             mock_repo = MagicMock()
             mock_repo_class.return_value = mock_repo
             mock_repo.index.write_tree.return_value = MagicMock()
-            
+
             # Mock config to return string values
             mock_config = MagicMock()
-            mock_config.get_string.side_effect = lambda key: "Test User" if key == "user.name" else "test@example.com"
+            mock_config.get_string.side_effect = lambda key: (
+                "Test User" if key == "user.name" else "test@example.com"
+            )
             mock_repo.config = mock_config
 
             # Track signature creation
@@ -119,7 +127,9 @@ class TestGitServiceCommit:
                     assert isinstance(args[0], str)  # Name
                     assert isinstance(args[1], str)  # Email
 
-    def test_commit_no_staged_changes(self, mock_discover_repository, temp_dir):
+    def test_commit_no_staged_changes(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test committing when there are no staged changes."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -132,21 +142,21 @@ class TestGitServiceCommit:
 
             # Create a tree ID value to use for comparison
             test_tree_id = "test-tree-id-12345"
-            
+
             # Create mock objects for the head reference chain
             mock_tree = MagicMock()
             mock_tree.id = test_tree_id
-            
+
             mock_commit = MagicMock()
             mock_commit.tree = mock_tree
-            
+
             # Configure head.peel() to return our mock commit
             mock_head = MagicMock()
             mock_head.peel.return_value = mock_commit
-            
+
             # Set the head property on the repository
             type(mock_repo).head = PropertyMock(return_value=mock_head)
-            
+
             # Simulate no staged changes by having write_tree return the same tree ID
             mock_repo.index.write_tree.return_value = test_tree_id
 
@@ -156,7 +166,9 @@ class TestGitServiceCommit:
             # Assert
             assert result is False  # Should return False when no changes to commit
 
-    def test_commit_empty_repository(self, mock_discover_repository, temp_dir):
+    def test_commit_empty_repository(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test committing in an empty repository (first commit)."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -189,7 +201,9 @@ class TestGitServiceCommit:
                 # In this implementation, parents are passed as the 6th positional argument (index 5)
                 assert args[5] == []  # Should be an empty list for initial commit
 
-    def test_commit_empty_message(self, mock_discover_repository, temp_dir):
+    def test_commit_empty_message(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test committing with an empty message."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -211,7 +225,7 @@ class TestGitServiceCommit:
                 # Assert
                 assert result is False  # Empty commit message should fail
 
-    def test_commit_not_repo(self, mock_discover_repository):
+    def test_commit_not_repo(self, mock_discover_repository: MagicMock) -> None:
         """Test committing when not in a git repository."""
         # Arrange
         repo_path = Path("/not/a/repo")
@@ -224,7 +238,9 @@ class TestGitServiceCommit:
         # Assert
         assert result is False
 
-    def test_commit_repo_access_error(self, mock_discover_repository, temp_dir):
+    def test_commit_repo_access_error(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test committing when repository access fails."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -240,7 +256,9 @@ class TestGitServiceCommit:
             # Assert
             assert result is False
 
-    def test_commit_invalid_signature(self, mock_discover_repository, temp_dir):
+    def test_commit_invalid_signature(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test committing with invalid signature information."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")

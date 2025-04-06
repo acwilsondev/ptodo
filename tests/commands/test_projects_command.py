@@ -53,4 +53,3 @@ class TestProjectsCommand:
         captured = capsys.readouterr()
 
         assert "test-project" in captured.out
-

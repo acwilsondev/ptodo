@@ -60,4 +60,3 @@ class TestDoneCommand:
             "completed" in captured.out.lower()
             or "marked as done" in captured.out.lower()
         )
-

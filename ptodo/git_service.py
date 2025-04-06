@@ -131,7 +131,7 @@ class GitService:
         # Check if file_path is a Path object or None first, before any other operations
         if file_path is not None and not isinstance(file_path, Path):
             raise TypeError("file_path must be a Path object or None")
-            
+
         if not self.is_repo():
             return False
 

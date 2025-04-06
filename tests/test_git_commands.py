@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import subprocess
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, call, patch
 
 import pytest
 
@@ -18,12 +18,9 @@ class TestGitCommands:
             # Create a mock instance that will be returned when GitService is instantiated
             mock_service = MagicMock()
             mock_service_class.return_value = mock_service
-            
+
             # Return both the class and instance for flexibility in tests
-            yield {
-                "class": mock_service_class,
-                "instance": mock_service
-            }
+            yield {"class": mock_service_class, "instance": mock_service}
 
     @pytest.fixture
     def mock_todo_file_path(self):
@@ -47,7 +44,9 @@ class TestGitCommands:
         result = cmd_git_init(args)
 
         # Assert
-        mock_git_service["class"].assert_called_once_with(mock_todo_file_path.return_value.parent)
+        mock_git_service["class"].assert_called_once_with(
+            mock_todo_file_path.return_value.parent
+        )
         mock_service.init.assert_called_once()
         assert result == 0
 
@@ -62,14 +61,18 @@ class TestGitCommands:
         result = cmd_git_init(args)
 
         # Assert
-        mock_git_service["class"].assert_called_once_with(mock_todo_file_path.return_value.parent)
+        mock_git_service["class"].assert_called_once_with(
+            mock_todo_file_path.return_value.parent
+        )
         mock_service.init.assert_called_once()
         # The function still returns 0 even if initialization fails
         # This matches the current implementation
         assert result == 0
 
     # Tests for cmd_git_remote
-    def test_git_remote_show_success(self, mock_git_service, mock_todo_file_path, capsys):
+    def test_git_remote_show_success(
+        self, mock_git_service, mock_todo_file_path, capsys
+    ):
         """Test successfully showing git remotes."""
         # Arrange
         mock_service = mock_git_service["instance"]
@@ -86,14 +89,18 @@ class TestGitCommands:
             result = cmd_git_remote(args)
 
             # Assert
-            mock_git_service["class"].assert_called_once_with(mock_todo_file_path.return_value.parent)
+            mock_git_service["class"].assert_called_once_with(
+                mock_todo_file_path.return_value.parent
+            )
             mock_service.is_repo.assert_called_once()
             mock_run.assert_called_once()
             captured = capsys.readouterr()
             assert mock_result.stdout in captured.out
             assert result == 0
 
-    def test_git_remote_show_no_remotes(self, mock_git_service, mock_todo_file_path, capsys):
+    def test_git_remote_show_no_remotes(
+        self, mock_git_service, mock_todo_file_path, capsys
+    ):
         """Test showing git remotes when none exist."""
         # Arrange
         mock_service = mock_git_service["instance"]
@@ -116,7 +123,9 @@ class TestGitCommands:
             assert "No remotes configured" in captured.out
             assert result == 0
 
-    def test_git_remote_show_failure(self, mock_git_service, mock_todo_file_path, capsys):
+    def test_git_remote_show_failure(
+        self, mock_git_service, mock_todo_file_path, capsys
+    ):
         """Test failure when showing git remotes."""
         # Arrange
         mock_service = mock_git_service["instance"]
@@ -124,8 +133,10 @@ class TestGitCommands:
         args = argparse.Namespace(url=None)
 
         # Mock subprocess.run to raise a CalledProcessError
-        error = subprocess.CalledProcessError(1, "git remote -v", stderr="Command failed")
-        
+        error = subprocess.CalledProcessError(
+            1, "git remote -v", stderr="Command failed"
+        )
+
         with patch("subprocess.run", side_effect=error) as mock_run:
             # Act
             result = cmd_git_remote(args)
@@ -137,7 +148,9 @@ class TestGitCommands:
             assert "Failed to list remotes" in captured.out
             assert result == 1
 
-    def test_git_remote_add_success(self, mock_git_service, mock_todo_file_path, capsys):
+    def test_git_remote_add_success(
+        self, mock_git_service, mock_todo_file_path, capsys
+    ):
         """Test adding a git remote successfully."""
         # Arrange
         mock_service = mock_git_service["instance"]
@@ -150,7 +163,9 @@ class TestGitCommands:
 
         # Assert
         mock_service.is_repo.assert_called_once()
-        mock_service.add_remote.assert_called_once_with("origin", "https://github.com/user/repo.git")
+        mock_service.add_remote.assert_called_once_with(
+            "origin", "https://github.com/user/repo.git"
+        )
         assert result == 0
 
     def test_git_remote_not_a_repo(self, mock_git_service, mock_todo_file_path, capsys):
@@ -182,9 +197,13 @@ class TestGitCommands:
         result = cmd_git_sync(args)
 
         # Assert
-        mock_git_service["class"].assert_called_once_with(mock_todo_file_path.return_value.parent)
+        mock_git_service["class"].assert_called_once_with(
+            mock_todo_file_path.return_value.parent
+        )
         mock_service.is_repo.assert_called_once()
-        mock_service.sync.assert_called_once_with(commit_message="Manual sync of todo files")
+        mock_service.sync.assert_called_once_with(
+            commit_message="Manual sync of todo files"
+        )
         captured = capsys.readouterr()
         assert "Successfully synced changes" in captured.out
         assert result == 0
@@ -202,7 +221,9 @@ class TestGitCommands:
 
         # Assert
         mock_service.is_repo.assert_called_once()
-        mock_service.sync.assert_called_once_with(commit_message="Manual sync of todo files")
+        mock_service.sync.assert_called_once_with(
+            commit_message="Manual sync of todo files"
+        )
         captured = capsys.readouterr()
         assert "No changes to sync or sync failed" in captured.out
         assert result == 1
@@ -226,4 +247,3 @@ class TestGitCommands:
 
 if __name__ == "__main__":
     pytest.main()
-

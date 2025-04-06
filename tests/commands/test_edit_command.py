@@ -49,7 +49,7 @@ class TestEditCommand:
         """Test the edit command uses the EDITOR environment variable."""
         mock_get_path.return_value = Path(todo_file)
         mock_argv.__getitem__.side_effect = lambda idx: ["ptodo", "edit"][idx]
-        
+
         # Simulate successful editor execution
         mock_system.return_value = 0
 
@@ -60,7 +60,7 @@ class TestEditCommand:
         # Check result
         assert result == 0
         assert "Edited" in captured.out
-        
+
         # Verify the correct editor command was executed
         mock_system.assert_called_once()
         args = mock_system.call_args[0][0]
@@ -82,10 +82,10 @@ class TestEditCommand:
         """Test the edit command uses the default editor when EDITOR is not set."""
         mock_get_path.return_value = Path(todo_file)
         mock_argv.__getitem__.side_effect = lambda idx: ["ptodo", "edit"][idx]
-        
+
         # Need to set TODO_FILE since patch.dict clears the environment
         os.environ["TODO_FILE"] = todo_file
-        
+
         # Simulate successful editor execution
         mock_system.return_value = 0
 
@@ -96,7 +96,7 @@ class TestEditCommand:
         # Check result
         assert result == 0
         assert "Edited" in captured.out
-        
+
         # Verify a default editor was used
         mock_system.assert_called_once()
         args = mock_system.call_args[0][0]
@@ -118,7 +118,7 @@ class TestEditCommand:
         """Test the edit command handles error from editor."""
         mock_get_path.return_value = Path(todo_file)
         mock_argv.__getitem__.side_effect = lambda idx: ["ptodo", "edit"][idx]
-        
+
         # Simulate editor failure with non-zero exit code
         mock_system.return_value = 1
 
@@ -145,8 +145,10 @@ class TestEditCommand:
     ) -> None:
         """Test the edit command in quiet mode doesn't output success message."""
         mock_get_path.return_value = Path(todo_file)
-        mock_argv.__getitem__.side_effect = lambda idx: ["ptodo", "edit", "--quiet"][idx]
-        
+        mock_argv.__getitem__.side_effect = lambda idx: ["ptodo", "edit", "--quiet"][
+            idx
+        ]
+
         # Simulate successful editor execution
         mock_system.return_value = 0
 
@@ -157,7 +159,6 @@ class TestEditCommand:
         # Check result
         assert result == 0
         assert captured.out == ""  # Should not output anything in quiet mode
-        
+
         # Verify the editor was still called
         mock_system.assert_called_once()
-

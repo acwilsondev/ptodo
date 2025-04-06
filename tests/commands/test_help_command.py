@@ -26,4 +26,3 @@ class TestHelpCommand:
         # Check for common help text indicators
         assert "usage" in captured.out.lower()
         assert "commands" in captured.out.lower() or "options" in captured.out.lower()
-
