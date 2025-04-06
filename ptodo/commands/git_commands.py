@@ -35,8 +35,6 @@ def cmd_git_remote(args: argparse.Namespace) -> int:
         print("Not a git repository. Run 'ptodo git init' first.")
         return 1
 
-    print(args)
-
     # If URL is provided, add or update the remote
     if hasattr(args, "url") and args.url:
         git_service.add_remote("origin", args.url)
