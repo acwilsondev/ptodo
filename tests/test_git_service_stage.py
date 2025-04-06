@@ -8,6 +8,11 @@ from unittest.mock import MagicMock, patch
 
 import pygit2
 import pytest
+
+# Define pygit2 constants for type checking
+# GIT_STATUS_WT_MODIFIED and GIT_STATUS_WT_NEW are used to mock the status of files
+GIT_STATUS_WT_MODIFIED = 1 << 7  # 128
+GIT_STATUS_WT_NEW = 1 << 2  # 4
 from pytest import CaptureFixture
 
 from ptodo.git_service import GitService
@@ -169,8 +174,8 @@ class TestGitServiceStage:
 
             # Simulate dirty working directory
             mock_repo.status.return_value = {
-                "file1.txt": pygit2.GIT_STATUS_WT_MODIFIED,
-                "file2.txt": pygit2.GIT_STATUS_WT_NEW,
+                "file1.txt": GIT_STATUS_WT_MODIFIED,
+                "file2.txt": GIT_STATUS_WT_NEW,
             }
 
             # Act
@@ -223,4 +228,4 @@ class TestGitServiceStage:
 
         # Act & Assert
         with pytest.raises(TypeError):
-            git_service.stage_changes(invalid_path)
+            git_service.stage_changes(invalid_path)  # type: ignore

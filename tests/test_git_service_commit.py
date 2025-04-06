@@ -105,7 +105,7 @@ class TestGitServiceCommit:
             # Mock signature creation to capture arguments
             with patch("pygit2.Signature") as mock_signature_class:
                 # Store the args used to create signatures
-                def capture_signature_args(*args, **kwargs):
+                def capture_signature_args(*args: Any, **kwargs: Any) -> MagicMock:
                     signature_args.append((args, kwargs))
                     return MagicMock()
 

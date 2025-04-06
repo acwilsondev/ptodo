@@ -2,10 +2,15 @@
 import shutil
 import tempfile
 from pathlib import Path
+from typing import Any, Generator
 from unittest.mock import MagicMock, patch
 
 import pygit2
 import pytest
+
+# Define pygit2 constants for type checking
+# GIT_STATUS_WT_MODIFIED is used to mock the status of files
+GIT_STATUS_WT_MODIFIED = 1 << 7  # 128
 
 from ptodo.git_service import GitService
 from ptodo.utils import get_ptodo_directory
@@ -15,26 +20,28 @@ class TestGitServiceSync:
     """Tests for the GitService class using pygit2."""
 
     @pytest.fixture
-    def temp_dir(self):
+    def temp_dir(self) -> Generator[Path, None, None]:
         """Create a temporary directory for testing."""
         temp_dir = tempfile.mkdtemp()
         yield Path(temp_dir)
         shutil.rmtree(temp_dir)
 
     @pytest.fixture
-    def mock_repo(self):
+    def mock_repo(self) -> Generator[MagicMock, None, None]:
         """Mock the pygit2.Repository class."""
         with patch("pygit2.Repository") as mock_repo:
             yield mock_repo
 
     @pytest.fixture
-    def mock_discover_repository(self):
+    def mock_discover_repository(self) -> Generator[MagicMock, None, None]:
         """Mock the pygit2.discover_repository function."""
         with patch("pygit2.discover_repository") as mock_discover:
             yield mock_discover
 
     # Tests for improved sync method
-    def test_sync_no_changes(self, mock_discover_repository, temp_dir):
+    def test_sync_no_changes(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test sync when there are no changes to commit."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -67,7 +74,9 @@ class TestGitServiceSync:
                     else True
                 )
 
-    def test_sync_auto_commit_false(self, mock_discover_repository, temp_dir):
+    def test_sync_auto_commit_false(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test sync with auto_commit=False (should stage but not commit)."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -79,7 +88,7 @@ class TestGitServiceSync:
             mock_repo_class.return_value = mock_repo
 
             # Mock status with changes
-            mock_repo.status.return_value = {"file.txt": pygit2.GIT_STATUS_WT_MODIFIED}
+            mock_repo.status.return_value = {"file.txt": GIT_STATUS_WT_MODIFIED}
 
             # Setup pull and stage success
             with patch.object(git_service, "pull", return_value=True), patch.object(
@@ -94,7 +103,9 @@ class TestGitServiceSync:
                 # Verify commit was not called since auto_commit=False
                 mock_commit.assert_not_called()
 
-    def test_sync_changes_no_remote(self, mock_discover_repository, temp_dir):
+    def test_sync_changes_no_remote(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test sync with changes but no remote (should commit but not push)."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -106,8 +117,8 @@ class TestGitServiceSync:
             mock_repo_class.return_value = mock_repo
 
             # Mock status with changes
-            mock_repo.status.return_value = {"file.txt": pygit2.GIT_STATUS_WT_MODIFIED}
-
+            # Mock status with changes
+            mock_repo.status.return_value = {"file.txt": GIT_STATUS_WT_MODIFIED}
             # Setup has_remote, stage, and commit success
             with patch.object(
                 git_service, "has_remote", return_value=False
@@ -127,7 +138,9 @@ class TestGitServiceSync:
                 # Verify push was not called since no remote
                 mock_push.assert_not_called()
 
-    def test_sync_failed_stage(self, mock_discover_repository, temp_dir):
+    def test_sync_failed_stage(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test sync when staging changes fails."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -146,7 +159,9 @@ class TestGitServiceSync:
             # Verify commit was not called after staging failure
             mock_commit.assert_not_called()
 
-    def test_sync_failed_commit(self, mock_discover_repository, temp_dir):
+    def test_sync_failed_commit(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test sync when commit fails."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -158,8 +173,8 @@ class TestGitServiceSync:
             mock_repo_class.return_value = mock_repo
 
             # Mock status with changes
-            mock_repo.status.return_value = {"file.txt": pygit2.GIT_STATUS_WT_MODIFIED}
-
+            # Mock status with changes
+            mock_repo.status.return_value = {"file.txt": GIT_STATUS_WT_MODIFIED}
             # Setup pull and stage success but commit failure
             with patch.object(git_service, "pull", return_value=True), patch.object(
                 git_service, "stage_changes", return_value=True
@@ -175,7 +190,9 @@ class TestGitServiceSync:
                 # Verify push was not called after commit failure
                 mock_push.assert_not_called()
 
-    def test_sync_failed_push(self, mock_discover_repository, temp_dir):
+    def test_sync_failed_push(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test sync when push fails but commit succeeds."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -187,8 +204,8 @@ class TestGitServiceSync:
             mock_repo_class.return_value = mock_repo
 
             # Mock status with changes
-            mock_repo.status.return_value = {"file.txt": pygit2.GIT_STATUS_WT_MODIFIED}
-
+            # Mock status with changes
+            mock_repo.status.return_value = {"file.txt": GIT_STATUS_WT_MODIFIED}
             # Setup has_remote, pull, stage, and commit success but push failure
             with patch.object(
                 git_service, "has_remote", return_value=True
@@ -208,7 +225,9 @@ class TestGitServiceSync:
                     result is True
                 )  # Sync should be considered successful even if push fails
 
-    def test_sync_full_workflow(self, mock_discover_repository, temp_dir):
+    def test_sync_full_workflow(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test full sync workflow (pull, stage, commit, push)."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -220,8 +239,8 @@ class TestGitServiceSync:
             mock_repo_class.return_value = mock_repo
 
             # Mock status with changes
-            mock_repo.status.return_value = {"file.txt": pygit2.GIT_STATUS_WT_MODIFIED}
-
+            # Mock status with changes
+            mock_repo.status.return_value = {"file.txt": GIT_STATUS_WT_MODIFIED}
             # Setup mocks for tracking method calls
             pull_mock = MagicMock(return_value=True)
             stage_mock = MagicMock(return_value=True)
@@ -251,7 +270,9 @@ class TestGitServiceSync:
                 commit_mock.assert_called_once_with("Test sync")
                 push_mock.assert_called_once()
 
-    def test_sync_merge_conflicts(self, mock_discover_repository, temp_dir):
+    def test_sync_merge_conflicts(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test sync with merge conflicts during pull."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -263,8 +284,8 @@ class TestGitServiceSync:
             mock_repo_class.return_value = mock_repo
 
             # Mock status with changes
-            mock_repo.status.return_value = {"file.txt": pygit2.GIT_STATUS_WT_MODIFIED}
-
+            # Mock status with changes
+            mock_repo.status.return_value = {"file.txt": GIT_STATUS_WT_MODIFIED}
             # Setup pull failure due to merge conflicts but successful stage and commit
             with patch.object(
                 git_service, "has_remote", return_value=True
@@ -284,7 +305,9 @@ class TestGitServiceSync:
                 # Push should still be called after commit succeeds
                 mock_push.assert_called_once()
 
-    def test_sync_non_fast_forward(self, mock_discover_repository, temp_dir):
+    def test_sync_non_fast_forward(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test sync with non-fast-forward errors during push."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -296,8 +319,8 @@ class TestGitServiceSync:
             mock_repo_class.return_value = mock_repo
 
             # Mock status with changes
-            mock_repo.status.return_value = {"file.txt": pygit2.GIT_STATUS_WT_MODIFIED}
-
+            # Mock status with changes
+            mock_repo.status.return_value = {"file.txt": GIT_STATUS_WT_MODIFIED}
             # Setup mocks for tracking method calls
             pull_mock = MagicMock(return_value=True)
             stage_mock = MagicMock(return_value=True)

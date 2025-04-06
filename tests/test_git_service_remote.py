@@ -2,6 +2,7 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
+from typing import Generator
 from unittest.mock import MagicMock, patch
 
 import pygit2
@@ -15,26 +16,28 @@ class TestGitServiceRemote:
     """Tests for the GitService class using pygit2."""
 
     @pytest.fixture
-    def temp_dir(self):
+    def temp_dir(self) -> Generator[Path, None, None]:
         """Create a temporary directory for testing."""
         temp_dir = tempfile.mkdtemp()
         yield Path(temp_dir)
         shutil.rmtree(temp_dir)
 
     @pytest.fixture
-    def mock_repo(self):
+    def mock_repo(self) -> Generator[MagicMock, None, None]:
         """Mock the pygit2.Repository class."""
         with patch("pygit2.Repository") as mock_repo:
             yield mock_repo
 
     @pytest.fixture
-    def mock_discover_repository(self):
+    def mock_discover_repository(self) -> Generator[MagicMock, None, None]:
         """Mock the pygit2.discover_repository function."""
         with patch("pygit2.discover_repository") as mock_discover:
             yield mock_discover
 
     # Tests for add_remote method
-    def test_add_remote_new_success(self, mock_discover_repository, temp_dir):
+    def test_add_remote_new_success(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test adding a new remote successfully."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -66,7 +69,9 @@ class TestGitServiceRemote:
                 "Added remote 'origin' at https://github.com/user/repo.git"
             )
 
-    def test_add_remote_update_existing(self, mock_discover_repository, temp_dir):
+    def test_add_remote_update_existing(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test updating an existing remote."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -107,7 +112,9 @@ class TestGitServiceRemote:
                 "Updated remote 'origin' to https://github.com/user/new-repo.git"
             )
 
-    def test_add_remote_error_handling(self, mock_discover_repository, temp_dir):
+    def test_add_remote_error_handling(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test handling errors in add_remote."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -127,7 +134,9 @@ class TestGitServiceRemote:
                 "Failed to add remote: Invalid remote URL"
             )
 
-    def test_add_remote_when_not_a_repository(self, mock_discover_repository):
+    def test_add_remote_when_not_a_repository(
+        self, mock_discover_repository: MagicMock
+    ) -> None:
         """Test add_remote when not in a git repository."""
         # Arrange
         repo_path = Path("/not/a/repo")
@@ -145,7 +154,9 @@ class TestGitServiceRemote:
         mock_print.assert_called_once_with(f"Not a git repository: {repo_path}")
 
     # Tests for has_remote method
-    def test_has_remote_with_remotes(self, mock_discover_repository, temp_dir):
+    def test_has_remote_with_remotes(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test has_remote when repository has remotes."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -166,7 +177,9 @@ class TestGitServiceRemote:
             # Assert
             assert result is True
 
-    def test_has_remote_without_remotes(self, mock_discover_repository, temp_dir):
+    def test_has_remote_without_remotes(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test has_remote when repository has no remotes."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")
@@ -186,7 +199,9 @@ class TestGitServiceRemote:
             # Assert
             assert result is False
 
-    def test_has_remote_when_not_a_repository(self, mock_discover_repository):
+    def test_has_remote_when_not_a_repository(
+        self, mock_discover_repository: MagicMock
+    ) -> None:
         """Test has_remote when not in a git repository."""
         # Arrange
         repo_path = Path("/not/a/repo")
@@ -199,7 +214,9 @@ class TestGitServiceRemote:
         # Assert
         assert result is False
 
-    def test_has_remote_error_handling(self, mock_discover_repository, temp_dir):
+    def test_has_remote_error_handling(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
         """Test has_remote error handling."""
         # Arrange
         mock_discover_repository.return_value = str(temp_dir / ".git")

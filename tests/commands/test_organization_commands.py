@@ -338,9 +338,9 @@ class TestOrganizationCommands:
 
         # Check that the projects were updated correctly in the tasks
         # We need to check what's passed to write_tasks
-        args, kwargs = mock_write_tasks.call_args
-        modified_tasks = args[0]
-
+        # We need to check what's passed to write_tasks
+        call_args, kwargs = mock_write_tasks.call_args
+        modified_tasks = call_args[0]
         # Check if the project names were updated correctly
         for task in modified_tasks:
             assert "project1" not in task.projects
@@ -415,8 +415,8 @@ class TestOrganizationCommands:
         mock_read_tasks.assert_called_once_with(todo_path, mock_git_service["instance"])
 
         # Check that tasks with project1 were removed
-        args, kwargs = mock_write_tasks.call_args
-        remaining_tasks = args[0]
+        call_args, kwargs = mock_write_tasks.call_args
+        remaining_tasks = call_args[0]
 
         # There should be only one task left (the one with project3)
         assert len(remaining_tasks) == 1
@@ -487,8 +487,8 @@ class TestOrganizationCommands:
         mock_read_tasks.assert_called_once_with(todo_path, mock_git_service["instance"])
 
         # Check that the priorities were updated correctly
-        args, kwargs = mock_write_tasks.call_args
-        modified_tasks = args[0]
+        call_args, kwargs = mock_write_tasks.call_args
+        modified_tasks = call_args[0]
 
         # Check if the priorities were set correctly for tasks with project1
         for task in modified_tasks:
@@ -508,7 +508,7 @@ class TestOrganizationCommands:
         mock_write_tasks: MagicMock,
         sample_tasks: List[Task],
         capsys: CaptureFixture[str],
-    ):
+    ) -> None:
         """Test successfully removing priority from all tasks in a project."""
         # Arrange
         todo_path = mock_todo_file_path.return_value
@@ -527,8 +527,8 @@ class TestOrganizationCommands:
         mock_read_tasks.assert_called_once_with(todo_path, mock_git_service["instance"])
 
         # Check that the priorities were removed correctly
-        args, kwargs = mock_write_tasks.call_args
-        modified_tasks = args[0]
+        call_args, kwargs = mock_write_tasks.call_args
+        modified_tasks = call_args[0]
 
         # Check if the priorities were removed for tasks with project3
         for task in modified_tasks:
@@ -542,13 +542,13 @@ class TestOrganizationCommands:
 
     def test_project_pri_invalid_priority(
         self,
-        mock_git_service,
-        mock_todo_file_path,
-        mock_read_tasks,
-        mock_write_tasks,
-        sample_tasks,
-        capsys,
-    ):
+        mock_git_service: Dict[str, MagicMock],
+        mock_todo_file_path: MagicMock,
+        mock_read_tasks: MagicMock,
+        mock_write_tasks: MagicMock,
+        sample_tasks: List[Task],
+        capsys: CaptureFixture[str],
+    ) -> None:
         """Test setting an invalid priority for tasks in a project."""
         # Arrange
         todo_path = mock_todo_file_path.return_value
@@ -573,13 +573,13 @@ class TestOrganizationCommands:
 
     def test_project_pri_project_not_found(
         self,
-        mock_git_service,
-        mock_todo_file_path,
-        mock_read_tasks,
-        mock_write_tasks,
-        sample_tasks,
-        capsys,
-    ):
+        mock_git_service: Dict[str, MagicMock],
+        mock_todo_file_path: MagicMock,
+        mock_read_tasks: MagicMock,
+        mock_write_tasks: MagicMock,
+        sample_tasks: List[Task],
+        capsys: CaptureFixture[str],
+    ) -> None:
         """Test setting priority when the project doesn't exist."""
         # Arrange
         todo_path = mock_todo_file_path.return_value
