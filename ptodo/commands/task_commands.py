@@ -2,6 +2,7 @@
 import argparse
 import datetime
 import os
+from operator import itemgetter
 
 from ..config import get_config
 from ..core import (
@@ -12,7 +13,7 @@ from ..core import (
     write_tasks,
 )
 from ..git_service import GitService
-from ..serda import Task, create_task, parse_date, parse_task
+from ..serda import Task, create_task, parse_date, parse_task, today_string
 
 # ANSI color codes for formatting
 RESET = "\033[0m"
@@ -451,5 +452,71 @@ def cmd_edit(args: argparse.Namespace) -> int:
 
     if not hasattr(args, "quiet") or not args.quiet:
         print(f"Edited: {todo_file}")
+
+    return 0
+
+
+def cmd_due(args: argparse.Namespace) -> int:
+    """
+    Show tasks that are due today or earlier.
+
+    Lists all incomplete tasks that have a due date of today or earlier,
+    sorted by due date (oldest first).
+
+    Args:
+        args: Command-line arguments
+    """
+    todo_file = get_todo_file_path()
+    git_service: GitService = GitService(todo_file.parent)
+    tasks: list[Task] = read_tasks(todo_file, git_service)
+
+    # Filter incomplete tasks with due date metadata
+    due_tasks = []
+    today = datetime.date.today()
+
+    for idx, task in enumerate(tasks):
+        # Skip completed tasks
+        if task.completed:
+            continue
+
+        # Skip tasks without due date
+        if "due" not in task.metadata:
+            continue
+
+        # Parse the due date
+        due_date = parse_date(task.metadata["due"])
+        if due_date is None:
+            continue  # Skip tasks with invalid due date
+
+        # Only include tasks due today or earlier
+        if due_date <= today:
+            due_tasks.append((idx, task, due_date))
+
+    # Sort by due date (oldest first)
+    due_tasks.sort(key=itemgetter(2))
+
+    # Print tasks
+    if not due_tasks:
+        print("No tasks due today or earlier.")
+        return 0
+
+    for _, (original_idx, task, due_date) in enumerate(due_tasks, 1):
+        _show_task(original_idx, task)
+        # Add a separator line between tasks for better readability
+        print("")
+
+    if not hasattr(args, "quiet") or not args.quiet:
+        print(f"{GRAY}Showing {len(due_tasks)} task(s) due today or earlier.{RESET}")
+        days_past = {
+            (datetime.date.today() - due_date).days
+            for _, _, due_date in due_tasks
+            if (datetime.date.today() - due_date).days > 0
+        }
+        if days_past:
+            overdue_str = ", ".join(
+                f"{days} day{'s' if days > 1 else ''}" for days in sorted(days_past)
+            )
+            print(f"{RED}Tasks overdue by: {overdue_str}{RESET}")
+        print("")
 
     return 0

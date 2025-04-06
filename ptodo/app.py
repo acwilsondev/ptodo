@@ -16,6 +16,7 @@ from .commands.task_commands import (
     cmd_add,
     cmd_await,
     cmd_done,
+    cmd_due,
     cmd_edit,
     cmd_list,
     cmd_next,
@@ -122,6 +123,17 @@ def main(args: Optional[List[str]] = None) -> int:
     # Tasks edit command
     tasks_subparsers.add_parser(
         "edit", help="Open the todo file in your default editor"
+    )
+
+    # Tasks due command
+    tasks_due_parser = tasks_subparsers.add_parser(
+        "due", help="Show tasks due today or earlier"
+    )
+    tasks_due_parser.add_argument(
+        "--quiet",
+        "-q",
+        action="store_true",
+        help="Suppress informational output",
     )
 
     # List command (backward compatibility)
@@ -283,6 +295,8 @@ def main(args: Optional[List[str]] = None) -> int:
             return int(cmd_await(parsed_args))
         elif parsed_args.task_command == "edit":
             return int(cmd_edit(parsed_args))
+        elif parsed_args.task_command == "due":
+            return int(cmd_due(parsed_args))
         else:
             parser.print_help()
             return 1

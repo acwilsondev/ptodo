@@ -1,3 +1,4 @@
+import datetime
 import os
 import shutil
 import tempfile
@@ -234,7 +235,50 @@ class TestApp:
 
         # Check for common help text indicators
         assert "usage" in captured.out.lower()
+        # Check for common help text indicators
+        assert "usage" in captured.out.lower()
         assert "commands" in captured.out.lower() or "options" in captured.out.lower()
+
+    @patch("sys.argv")
+    @patch("ptodo.core.get_todo_file_path")
+    def test_due_command(
+        self,
+        mock_get_path: MagicMock,
+        mock_argv: MagicMock,
+        todo_file: str,
+        capsys: CaptureFixture[str],
+    ) -> None:
+        """Test the `tasks due` command."""
+        # Create test tasks with different due dates
+        yesterday = (datetime.date.today() - datetime.timedelta(days=1)).strftime(
+            "%Y-%m-%d"
+        )
+        today = datetime.date.today().strftime("%Y-%m-%d")
+        tomorrow = (datetime.date.today() + datetime.timedelta(days=1)).strftime(
+            "%Y-%m-%d"
+        )
+
+        with open(todo_file, "w") as f:
+            f.write("Task without due date\n")
+            f.write(f"Task due yesterday due:{yesterday}\n")
+            f.write(f"Task due today due:{today}\n")
+            f.write(f"Task due tomorrow due:{tomorrow}\n")
+            f.write(f"x Completed task due:{yesterday}\n")  # Should be filtered out
+
+        mock_get_path.return_value = Path(todo_file)
+        mock_argv.__getitem__.side_effect = lambda idx: ["ptodo", "tasks", "due"][idx]
+
+        # Run the due command
+        result = main()
+        captured = capsys.readouterr()
+
+        # Should show only the two tasks (yesterday and today)
+        assert result == 0
+        assert "Task due yesterday" in captured.out
+        assert "Task due today" in captured.out
+        assert "Task without due date" not in captured.out
+        assert "Task due tomorrow" not in captured.out
+        assert "Completed task" not in captured.out
 
 
 if __name__ == "__main__":
