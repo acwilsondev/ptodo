@@ -281,5 +281,5 @@ class TestApp:
         assert "Completed task" not in captured.out
 
 
-if __name__ == "__main__":
-    pytest.main()
+# if __name__ == "__main__":
+#     pytest.main()

@@ -14,18 +14,21 @@ class TestConfigCommands:
     @pytest.fixture
     def mock_config_deps(self):
         """Mock configuration dependencies."""
-        with patch("ptodo.commands.config_commands.load_config") as mock_load, \
-             patch("ptodo.commands.config_commands.get_config") as mock_get, \
-             patch("ptodo.commands.config_commands.set_config") as mock_set, \
-             patch("ptodo.commands.config_commands.update_config") as mock_update:
-            
+        with patch("ptodo.commands.config_commands.load_config") as mock_load, patch(
+            "ptodo.commands.config_commands.get_config"
+        ) as mock_get, patch(
+            "ptodo.commands.config_commands.set_config"
+        ) as mock_set, patch(
+            "ptodo.commands.config_commands.update_config"
+        ) as mock_update:
+
             # Set up mock return values
             mock_load.return_value = {
                 "default_view": "all",
                 "color_enabled": True,
                 "priority_colors": {"A": "red", "B": "yellow", "C": "green"},
             }
-            
+
             # Configure get_config to return values based on key
             def mock_get_config(key):
                 if key == "default_view":
@@ -38,24 +41,24 @@ class TestConfigCommands:
                     return None
                 else:
                     return None
-            
+
             mock_get.side_effect = mock_get_config
-            
+
             yield {
                 "load_config": mock_load,
                 "get_config": mock_get,
                 "set_config": mock_set,
-                "update_config": mock_update
+                "update_config": mock_update,
             }
 
     def test_show_command(self, mock_config_deps, capsys):
         """Test the 'show' command."""
         # Create args
         args = argparse.Namespace(config_command="show")
-        
+
         # Call the function
         result = cmd_config(args)
-        
+
         # Check results
         mock_config_deps["load_config"].assert_called_once()
         captured = capsys.readouterr()
@@ -69,10 +72,10 @@ class TestConfigCommands:
         """Test the 'get' command with an existing key."""
         # Create args
         args = argparse.Namespace(config_command="get", key="default_view")
-        
+
         # Call the function
         result = cmd_config(args)
-        
+
         # Check results
         mock_config_deps["get_config"].assert_called_once_with("default_view")
         captured = capsys.readouterr()
@@ -83,10 +86,10 @@ class TestConfigCommands:
         """Test the 'get' command with a nonexistent key."""
         # Create args
         args = argparse.Namespace(config_command="get", key="unknown_key")
-        
+
         # Call the function
         result = cmd_config(args)
-        
+
         # Check results
         mock_config_deps["get_config"].assert_called_once_with("unknown_key")
         captured = capsys.readouterr()
@@ -97,14 +100,16 @@ class TestConfigCommands:
         """Test the 'set' command with a boolean value (true)."""
         # Test different boolean representations
         boolean_values = ["true", "yes", "1", "True", "YES"]
-        
+
         for value in boolean_values:
             # Create args
-            args = argparse.Namespace(config_command="set", key="color_enabled", value=value)
-            
+            args = argparse.Namespace(
+                config_command="set", key="color_enabled", value=value
+            )
+
             # Call the function
             result = cmd_config(args)
-            
+
             # Check results
             mock_config_deps["set_config"].assert_called_with("color_enabled", True)
             captured = capsys.readouterr()
@@ -115,14 +120,16 @@ class TestConfigCommands:
         """Test the 'set' command with a boolean value (false)."""
         # Test different boolean representations
         boolean_values = ["false", "no", "0", "False", "NO"]
-        
+
         for value in boolean_values:
             # Create args
-            args = argparse.Namespace(config_command="set", key="color_enabled", value=value)
-            
+            args = argparse.Namespace(
+                config_command="set", key="color_enabled", value=value
+            )
+
             # Call the function
             result = cmd_config(args)
-            
+
             # Check results
             mock_config_deps["set_config"].assert_called_with("color_enabled", False)
             captured = capsys.readouterr()
@@ -133,10 +140,10 @@ class TestConfigCommands:
         """Test the 'set' command with an integer value."""
         # Create args
         args = argparse.Namespace(config_command="set", key="max_tasks", value="42")
-        
+
         # Call the function
         result = cmd_config(args)
-        
+
         # Check results
         mock_config_deps["set_config"].assert_called_once_with("max_tasks", 42)
         captured = capsys.readouterr()
@@ -147,10 +154,10 @@ class TestConfigCommands:
         """Test the 'set' command with a float value."""
         # Create args
         args = argparse.Namespace(config_command="set", key="timeout", value="3.14")
-        
+
         # Call the function
         result = cmd_config(args)
-        
+
         # Check results
         mock_config_deps["set_config"].assert_called_once_with("timeout", 3.14)
         captured = capsys.readouterr()
@@ -161,10 +168,10 @@ class TestConfigCommands:
         """Test the 'set' command with a string value."""
         # Create args
         args = argparse.Namespace(config_command="set", key="editor", value="vim")
-        
+
         # Call the function
         result = cmd_config(args)
-        
+
         # Check results
         mock_config_deps["set_config"].assert_called_once_with("editor", "vim")
         captured = capsys.readouterr()
@@ -175,15 +182,19 @@ class TestConfigCommands:
         """Test the 'set' command with an error during setting."""
         # Setup mock to raise an exception
         mock_config_deps["set_config"].side_effect = ValueError("Invalid value")
-        
+
         # Create args
-        args = argparse.Namespace(config_command="set", key="invalid_key", value="invalid_value")
-        
+        args = argparse.Namespace(
+            config_command="set", key="invalid_key", value="invalid_value"
+        )
+
         # Call the function
         result = cmd_config(args)
-        
+
         # Check results
-        mock_config_deps["set_config"].assert_called_once_with("invalid_key", "invalid_value")
+        mock_config_deps["set_config"].assert_called_once_with(
+            "invalid_key", "invalid_value"
+        )
         captured = capsys.readouterr()
         assert result == 2
         assert "Error setting configuration" in captured.out
@@ -192,10 +203,10 @@ class TestConfigCommands:
         """Test the 'reset' command."""
         # Create args
         args = argparse.Namespace(config_command="reset")
-        
+
         # Call the function
         result = cmd_config(args)
-        
+
         # Check results
         mock_config_deps["update_config"].assert_called_once_with(DEFAULT_CONFIG)
         captured = capsys.readouterr()
@@ -206,13 +217,13 @@ class TestConfigCommands:
         """Test the 'reset' command with an error during update."""
         # Setup mock to raise an exception
         mock_config_deps["update_config"].side_effect = ValueError("Update error")
-        
+
         # Create args
         args = argparse.Namespace(config_command="reset")
-        
+
         # Call the function
         result = cmd_config(args)
-        
+
         # Check results
         mock_config_deps["update_config"].assert_called_once_with(DEFAULT_CONFIG)
         captured = capsys.readouterr()
@@ -223,10 +234,10 @@ class TestConfigCommands:
         """Test an unknown configuration command."""
         # Create args
         args = argparse.Namespace(config_command="unknown_command")
-        
+
         # Call the function
         result = cmd_config(args)
-        
+
         # Check results
         captured = capsys.readouterr()
         assert result == 3
@@ -236,13 +247,13 @@ class TestConfigCommands:
         """Test unexpected exception handling."""
         # Setup mocks to raise an exception
         mock_config_deps["load_config"].side_effect = Exception("Unexpected error")
-        
+
         # Create args
         args = argparse.Namespace(config_command="show")
-        
+
         # Call the function
         result = cmd_config(args)
-        
+
         # Check results
         captured = capsys.readouterr()
         assert result == 4
@@ -251,4 +262,3 @@ class TestConfigCommands:
 
 if __name__ == "__main__":
     pytest.main()
-
