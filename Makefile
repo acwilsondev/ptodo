@@ -61,8 +61,8 @@ clean: ## Clean up build artifacts
 	find . -type f -name "*.pyd" -delete
 
 metrics: ## Run code metrics (complexity and maintainability) using radon
-	radon cc $(PKG_NAME) tests
-	radon mi $(PKG_NAME) tests
+	! radon cc $(PKG_NAME) tests -n C
+	! radon mi $(PKG_NAME) tests -n B
 
 help: ## Show this help message
 	@echo "Usage: make [target]"
