@@ -26,7 +26,7 @@ from .commands.task_commands import (
 )
 from .utils.deprecation import warn_deprecated_command
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 
 
 def main(args: Optional[List[str]] = None) -> int:

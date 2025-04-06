@@ -166,7 +166,7 @@ def cmd_add(args: argparse.Namespace) -> int:
     task: Task = create_task(
         description=parsed_task.description,
         priority=priority,
-        add_creation_date=datetime.date.today(),
+        add_creation_date=True,  # Changed from datetime.date.today()
         projects=list(parsed_task.projects) if parsed_task.projects else None,
         contexts=list(parsed_task.contexts) if parsed_task.contexts else None,
         metadata=parsed_task.metadata if parsed_task.metadata else None,

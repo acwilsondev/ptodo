@@ -17,18 +17,18 @@ class Task:
     contexts: set[str] = field(default_factory=set)
     metadata: dict[str, str] = field(default_factory=dict)
     effort: str | None = None
-    
+
     def __post_init__(self) -> None:
         """Ensure priority is None for completed tasks."""
         if self.completed:
             self.priority = None
-    
+
     def complete(self) -> None:
         """Mark the task as completed and set completion date to today."""
         # If there's a priority, store it in metadata before removing it
         if self.priority:
             self.metadata["pri"] = self.priority
-            
+
         self.completed = True
         self.completion_date = datetime.date.today()
         self.priority = None
@@ -58,6 +58,8 @@ class Task:
         if not self.validate_recurrence():
             return None
         due_date = parse_date(self.metadata["due"])
+        # We know due_date is not None because validate_recurrence checks it
+        assert due_date is not None, "Due date should be valid at this point"
         recur_days = int(self.metadata["recur"])
         next_due_date = due_date + datetime.timedelta(days=recur_days)
         while next_due_date <= datetime.date.today():
@@ -75,19 +77,27 @@ class Task:
 
     def validate_recurrence(self) -> bool:
         """Validate the recurrence metadata."""
-        if "recur" in self.metadata:
-            if not self.metadata["recur"].isdigit():
-                print(f"Invalid recur value: {self.metadata['recur']}")
-                return False
-            if int(self.metadata["recur"]) < 1:
-                print(f"Invalid recur value: {self.metadata['recur']}")
-                return False
-            if not "due" in self.metadata:
-                print("No due date found for the task: {self.description}")
-                return False
-            if not parse_date(self.metadata["due"]):
-                print(f"Invalid due date format: {self.metadata['due']}")
-                return False
+        # Return False early if there's no recurrence metadata
+        if "recur" not in self.metadata:
+            return False
+
+        # Validate recurrence value is a positive digit
+        if not self.metadata["recur"].isdigit():
+            print(f"Invalid recur value: {self.metadata['recur']}")
+            return False
+        if int(self.metadata["recur"]) < 1:
+            print(f"Invalid recur value: {self.metadata['recur']}")
+            return False
+
+        # Validate due date exists and is valid
+        if "due" not in self.metadata:
+            print(f"No due date found for the task: {self.description}")
+            return False
+        parsed_date = parse_date(self.metadata["due"])
+        if parsed_date is None:
+            print(f"Invalid due date format: {self.metadata['due']}")
+            return False
+
         return True
 
 
