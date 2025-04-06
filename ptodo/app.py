@@ -135,6 +135,13 @@ def main(args: Optional[List[str]] = None) -> int:
         action="store_true",
         help="Suppress informational output",
     )
+    tasks_due_parser.add_argument(
+        "--soon",
+        "-s",
+        type=int,
+        metavar="DAYS",
+        help="Show tasks due within the specified number of days",
+    )
 
     # List command (backward compatibility)
     list_parser = subparsers.add_parser("list", help="List tasks")

@@ -33,10 +33,10 @@ typecheck: ## Run type checking with mypy
 build: clean ## Build the package
 	$(PYTHON) -m build
 
-check: ## Run linting, type checking, metrics, and tests to verify code quality
+check: ## Run formatting, type checking, metrics, and tests to verify code quality
 	$(PYTHON) checks/version_check.py
 	$(MAKE) test
-	$(MAKE) lint
+	$(MAKE) format
 	$(MAKE) typecheck
 	$(MAKE) metrics
 

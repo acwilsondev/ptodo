@@ -458,9 +458,10 @@ def cmd_edit(args: argparse.Namespace) -> int:
 
 def cmd_due(args: argparse.Namespace) -> int:
     """
-    Show tasks that are due today or earlier.
+    Show tasks that are due today or earlier, or within a specified number of days.
 
     Lists all incomplete tasks that have a due date of today or earlier,
+    or if --soon is specified, tasks due within the given number of days,
     sorted by due date (oldest first).
 
     Args:
@@ -473,6 +474,12 @@ def cmd_due(args: argparse.Namespace) -> int:
     # Filter incomplete tasks with due date metadata
     due_tasks = []
     today = datetime.date.today()
+
+    # Calculate the future date if --soon is specified
+    soon_days = getattr(args, "soon", None)
+    future_date = None
+    if soon_days is not None:
+        future_date = today + datetime.timedelta(days=soon_days)
 
     for idx, task in enumerate(tasks):
         # Skip completed tasks
@@ -488,8 +495,8 @@ def cmd_due(args: argparse.Namespace) -> int:
         if due_date is None:
             continue  # Skip tasks with invalid due date
 
-        # Only include tasks due today or earlier
-        if due_date <= today:
+        # Include tasks due today or earlier, or within the specified number of days
+        if due_date <= today or (future_date is not None and due_date <= future_date):
             due_tasks.append((idx, task, due_date))
 
     # Sort by due date (oldest first)
@@ -497,7 +504,12 @@ def cmd_due(args: argparse.Namespace) -> int:
 
     # Print tasks
     if not due_tasks:
-        print("No tasks due today or earlier.")
+        if future_date is not None:
+            print(
+                f"No tasks due within the next {soon_days} day{'s' if soon_days != 1 else ''}."
+            )
+        else:
+            print("No tasks due today or earlier.")
         return 0
 
     for _, (original_idx, task, due_date) in enumerate(due_tasks, 1):
@@ -506,7 +518,16 @@ def cmd_due(args: argparse.Namespace) -> int:
         print("")
 
     if not hasattr(args, "quiet") or not args.quiet:
-        print(f"{GRAY}Showing {len(due_tasks)} task(s) due today or earlier.{RESET}")
+        if future_date is not None:
+            print(
+                f"{GRAY}Showing {len(due_tasks)} task(s) due within the next {soon_days} day{'s' if soon_days != 1 else ''}.{RESET}"
+            )
+        else:
+            print(
+                f"{GRAY}Showing {len(due_tasks)} task(s) due today or earlier.{RESET}"
+            )
+
+        # Show overdue tasks
         days_past = {
             (datetime.date.today() - due_date).days
             for _, _, due_date in due_tasks
@@ -517,6 +538,21 @@ def cmd_due(args: argparse.Namespace) -> int:
                 f"{days} day{'s' if days > 1 else ''}" for days in sorted(days_past)
             )
             print(f"{RED}Tasks overdue by: {overdue_str}{RESET}")
+
+        # Show future tasks if --soon is specified
+        if future_date is not None:
+            days_future = {
+                (due_date - datetime.date.today()).days
+                for _, _, due_date in due_tasks
+                if due_date > datetime.date.today()
+            }
+            if days_future:
+                future_str = ", ".join(
+                    f"{days} day{'s' if days > 1 else ''}"
+                    for days in sorted(days_future)
+                )
+                print(f"{GREEN}Tasks due in: {future_str}{RESET}")
+
         print("")
 
     return 0
