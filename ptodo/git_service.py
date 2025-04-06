@@ -385,9 +385,12 @@ class GitService:
         if not self.is_repo():
             return False
 
+        # Check for remote once and store the result
+        has_remote = self.has_remote()
+
         # Try to pull first if we have a remote
         pull_success = True
-        if self.has_remote():
+        if has_remote:
             pull_success = self.pull()
 
         # Stage changes
@@ -418,10 +421,9 @@ class GitService:
             if not commit_success:
                 # Failed to commit changes
                 return False
-
             # Push if we have a remote and auto_sync is enabled
             push_success = True
-            if self.has_remote() and auto_sync:
+            if has_remote and auto_sync:
                 push_success = self.push()
 
             # Consider sync successful if commit worked, even if push failed
