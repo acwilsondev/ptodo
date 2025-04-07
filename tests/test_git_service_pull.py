@@ -243,3 +243,61 @@ class TestGitServicePull:
             assert result is True
             mock_remote.fetch.assert_called_once()
             mock_repo.merge.assert_called_once_with("remote-commit-id")
+
+    def test_pull_with_real_remote_behavior(
+        self, mock_discover_repository: MagicMock, temp_dir: Path
+    ) -> None:
+        """Test pull with direct Remote object iteration (real pygit2 behavior)."""
+        # Arrange
+        mock_discover_repository.return_value = str(temp_dir / ".git")
+        git_service = GitService(repo_dir=temp_dir)
+
+        # Create mock repository with a RemoteCollection that returns Remote objects directly
+        with patch("pygit2.Repository") as mock_repo_class:
+            mock_repo = MagicMock()
+            mock_repo_class.return_value = mock_repo
+
+            # Mock remote
+            mock_remote = MagicMock()
+            mock_remote.name = "origin"
+            mock_remote.fetch.return_value = None  # No errors during fetch
+
+            # Create a mock RemoteCollection that yields Remote objects directly
+            class RealRemoteCollection:
+                def __init__(self):
+                    self.remotes = {"origin": mock_remote}
+
+                def __iter__(self):
+                    # Return the Remote objects directly, not the keys
+                    return iter(self.remotes.values())
+
+                def __len__(self):
+                    return len(self.remotes)
+
+                # Allow item access by remote name
+                def __getitem__(self, key):
+                    return self.remotes[key]
+
+            # Set repo.remotes to be our mock RemoteCollection
+            mock_repo.remotes = RealRemoteCollection()
+
+            # Mock needed objects for merge
+            mock_repo.head = MagicMock()
+            mock_repo.head.shorthand = "master"  # Current branch
+            mock_repo.head.target = "local-commit-id"
+
+            # Mock remote reference
+            mock_remote_branch = MagicMock()
+            mock_remote_branch.target = "remote-commit-id"
+            mock_repo.references = {"refs/remotes/origin/master": mock_remote_branch}
+
+            # Mock a successful merge
+            mock_repo.merge.return_value = None
+
+            # Act
+            result = git_service.pull()
+
+            # Assert
+            assert result is True
+            mock_remote.fetch.assert_called_once()
+            mock_repo.merge.assert_called_once_with("remote-commit-id")
