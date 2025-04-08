@@ -272,12 +272,12 @@ class GitService:
             # 1. Dictionary-style remotes where iter() returns string keys (simple test mocks)
             # 2. RemoteCollection with key iteration (custom test mocks)
             # 3. Real pygit2 behavior where iter() yields Remote objects directly
-            
+
             # Get the first remote object or name
             first_remote = next(iter(repo.remotes))
-            
+
             # Handle different remote types:
-            if hasattr(first_remote, 'name'):
+            if hasattr(first_remote, "name"):
                 # Case: first_remote is already a Remote object with a name attribute
                 # This happens with real pygit2 when iter(remotes) yields Remote objects
                 remote_name = first_remote.name
@@ -363,8 +363,16 @@ class GitService:
                 return False
 
             # Get the first remote (typically "origin")
-            remote_name = next(iter(getattr(repo, "remotes")))
-            remote = getattr(repo, "remotes")[remote_name]
+            remote_object = next(iter(getattr(repo, "remotes")))
+
+            # Handle both cases: remote_object could be a string name or Remote object
+            if hasattr(remote_object, "name"):
+                # It's already a Remote object
+                remote = remote_object
+            else:
+                # It's a remote name as string
+                remote_name = remote_object
+                remote = getattr(repo, "remotes")[remote_name]
 
             # Get the current branch to push
             try:
