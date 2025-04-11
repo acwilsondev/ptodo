@@ -13,7 +13,7 @@ from ..core import (
     write_tasks,
 )
 from ..git_service import GitService
-from ..serda import Task, create_task, parse_date, parse_task, today_string
+from ..core.serda import Task, create_task, parse_date, parse_task, today_string
 
 # ANSI color codes for formatting
 RESET = "\033[0m"

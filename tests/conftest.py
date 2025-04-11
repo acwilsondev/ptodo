@@ -8,7 +8,7 @@ import pytest
 from _pytest.config import Config
 from _pytest.monkeypatch import MonkeyPatch
 
-from ptodo.serda import Task
+from ptodo.core.serda import Task
 
 
 @pytest.fixture

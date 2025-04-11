@@ -64,6 +64,11 @@ class Task:
         next_due_date = due_date + datetime.timedelta(days=recur_days)
         while next_due_date <= datetime.date.today():
             next_due_date += datetime.timedelta(days=recur_days)
+        
+        # Create a new metadata dictionary with the updated due date
+        updated_metadata = self.metadata.copy()
+        updated_metadata["due"] = next_due_date.strftime("%Y-%m-%d")
+        
         return Task(
             completed=False,
             priority=self.priority,
@@ -71,7 +76,7 @@ class Task:
             description=self.description,
             projects=self.projects.copy(),
             contexts=self.contexts.copy(),
-            metadata=self.metadata.copy(),
+            metadata=updated_metadata,
             effort=self.effort,
         )
 

@@ -1,12 +1,12 @@
 import os
 import sys
 import unittest
-from datetime import date
+from datetime import date, datetime, timedelta
 
 # Add the parent directory to the path so we can import the ptodo package
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # Import our modules after path modification
-from ptodo.serda import Task, parse_task  # noqa: E402
+from ptodo.core.serda import Task, parse_task, parse_date  # noqa: E402
 
 
 class TestTask(unittest.TestCase):
@@ -160,6 +160,41 @@ class TestTask(unittest.TestCase):
             serialized, f"x {date.today().strftime('%Y-%m-%d')} Important task pri:A"
         )
         self.assertNotIn("(A)", serialized)
+
+    def test_recur_sets_due_date_correctly(self) -> None:
+        """Test that recurring a task sets the due date correctly."""
+        # Create a task with recurrence and due date
+        today = date.today()
+        due_date = today - timedelta(days=1)  # Yesterday
+        recur_days = 7
+        
+        task = Task(
+            description="Recurring task",
+            priority="A",
+            metadata={
+                "due": due_date.strftime("%Y-%m-%d"),
+                "recur": str(recur_days)
+            }
+        )
+        
+        # Call recur() to create a new recurring task
+        new_task = task.recur()
+        
+        # Verify the new task is created
+        self.assertIsNotNone(new_task)
+        
+        # Verify due date is set and calculated correctly
+        self.assertIn("due", new_task.metadata)
+        
+        # Expected due date should be recur_days days from the original due date
+        # Expected due date should be recur_days days from the original due date
+        # but not earlier than tomorrow
+        expected_due_date = due_date + timedelta(days=recur_days)
+        while expected_due_date <= today:
+            expected_due_date += timedelta(days=recur_days)
+        actual_due_date = parse_date(new_task.metadata["due"])
+        self.assertIsNotNone(actual_due_date)
+        self.assertEqual(actual_due_date, expected_due_date)
 
 
 class TestSerialization(unittest.TestCase):

@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 import argparse
+from pathlib import Path
+from typing import Optional
 
 from ..core import (
+    Task,
     get_done_file_path,
     get_todo_file_path,
     read_tasks,
     write_tasks,
 )
 from ..git_service import GitService
-
 
 def cmd_archive(_: argparse.Namespace) -> int:
     """
@@ -17,16 +19,16 @@ def cmd_archive(_: argparse.Namespace) -> int:
     Args:
         _: (Unused) Command-line arguments
     """
-    todo_file = get_todo_file_path()
-    git_service = GitService(todo_file.parent)
-    done_file = get_done_file_path()
+    todo_file: Path = get_todo_file_path()
+    git_service: GitService = GitService(todo_file.parent)
+    done_file: Path = get_done_file_path()
 
-    tasks = read_tasks(todo_file, git_service)
-    done_tasks = read_tasks(done_file, git_service)
+    tasks: list[Task] = read_tasks(todo_file, git_service)
+    done_tasks: list[Task] = read_tasks(done_file, git_service)
 
     # Find completed tasks
-    completed_tasks = [t for t in tasks if t.completed]
-    incomplete_tasks = [t for t in tasks if not t.completed]
+    completed_tasks: list[Task] = [t for t in tasks if t.completed]
+    incomplete_tasks: list[Task] = [t for t in tasks if not t.completed]
 
     if not completed_tasks:
         print("No completed tasks to archive.")
@@ -50,9 +52,9 @@ def cmd_projects(_: argparse.Namespace) -> int:
     Args:
         _: (Unused) Command-line arguments
     """
-    todo_file = get_todo_file_path()
-    git_service = GitService(todo_file.parent)
-    tasks = read_tasks(todo_file, git_service)
+    todo_file: Path = get_todo_file_path()
+    git_service: GitService = GitService(todo_file.parent)
+    tasks: list[Task] = read_tasks(todo_file, git_service)
 
     # Get all projects
     all_projects: set[str] = set()
@@ -77,9 +79,9 @@ def cmd_contexts(_: argparse.Namespace) -> int:
     Args:
         _: (Unused) Command-line arguments
     """
-    todo_file = get_todo_file_path()
-    git_service = GitService(todo_file.parent)
-    tasks = read_tasks(todo_file, git_service)
+    todo_file: Path = get_todo_file_path()
+    git_service: GitService = GitService(todo_file.parent)
+    tasks: list[Task] = read_tasks(todo_file, git_service)
 
     # Get all contexts
     all_contexts: set[str] = set()
@@ -104,15 +106,15 @@ def cmd_project_mv(args: argparse.Namespace) -> int:
     Args:
         args: Command-line arguments containing old_name and new_name
     """
-    old_name = args.old_name
-    new_name = args.new_name
+    old_name: str = args.old_name
+    new_name: str = args.new_name
 
-    todo_file = get_todo_file_path()
-    git_service = GitService(todo_file.parent)
-    tasks = read_tasks(todo_file, git_service)
+    todo_file: Path = get_todo_file_path()
+    git_service: GitService = GitService(todo_file.parent)
+    tasks: list[Task] = read_tasks(todo_file, git_service)
 
     # Count tasks with the old project
-    affected_tasks = [t for t in tasks if old_name in t.projects]
+    affected_tasks: list[Task] = [t for t in tasks if old_name in t.projects]
 
     if not affected_tasks:
         print(f"No tasks found with project +{old_name}")
@@ -139,21 +141,21 @@ def cmd_project_rm(args: argparse.Namespace) -> int:
     Args:
         args: Command-line arguments containing the project name
     """
-    project_name = args.name
+    project_name: str = args.name
 
-    todo_file = get_todo_file_path()
-    git_service = GitService(todo_file.parent)
-    tasks = read_tasks(todo_file, git_service)
+    todo_file: Path = get_todo_file_path()
+    git_service: GitService = GitService(todo_file.parent)
+    tasks: list[Task] = read_tasks(todo_file, git_service)
 
     # Count tasks with the specified project
-    affected_tasks = [t for t in tasks if project_name in t.projects]
+    affected_tasks: list[Task] = [t for t in tasks if project_name in t.projects]
 
     if not affected_tasks:
         print(f"No tasks found with project +{project_name}")
         return 1
 
     # Remove tasks with the specified project
-    remaining_tasks = [t for t in tasks if t not in affected_tasks]
+    remaining_tasks: list[Task] = [t for t in tasks if t not in affected_tasks]
 
     # Write remaining tasks back to file
     write_tasks(remaining_tasks, todo_file, git_service)
@@ -169,8 +171,8 @@ def cmd_project_pri(args: argparse.Namespace) -> int:
     Args:
         args: Command-line arguments containing the project name and priority
     """
-    project_name = args.name
-    priority = args.priority
+    project_name: str = args.name
+    priority: str = args.priority
 
     # Validate priority
     if priority != "-" and (len(priority) != 1 or not "A" <= priority <= "Z"):
@@ -179,12 +181,12 @@ def cmd_project_pri(args: argparse.Namespace) -> int:
         )
         return 1
 
-    todo_file = get_todo_file_path()
-    git_service = GitService(todo_file.parent)
-    tasks = read_tasks(todo_file, git_service)
+    todo_file: Path = get_todo_file_path()
+    git_service: GitService = GitService(todo_file.parent)
+    tasks: list[Task] = read_tasks(todo_file, git_service)
 
     # Find tasks with the specified project
-    affected_tasks = [t for t in tasks if project_name in t.projects]
+    affected_tasks: list[Task] = [t for t in tasks if project_name in t.projects]
 
     if not affected_tasks:
         print(f"No tasks found with project +{project_name}")
