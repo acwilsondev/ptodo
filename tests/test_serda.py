@@ -196,6 +196,48 @@ class TestTask(unittest.TestCase):
         self.assertIsNotNone(actual_due_date)
         self.assertEqual(actual_due_date, expected_due_date)
 
+    def test_recur_preserves_priority_format(self) -> None:
+        """Test that recurring a completed task handles priority format correctly."""
+        # Create a task with priority, recurrence and due date
+        today = date.today()
+        due_date = today - timedelta(days=1)  # Yesterday
+        recur_days = 7
+        
+        task = Task(
+            description="Priority recurring task",
+            priority="A",
+            metadata={
+                "due": due_date.strftime("%Y-%m-%d"),
+                "recur": str(recur_days)
+            }
+        )
+        
+        # Verify the original task has priority in (A) format
+        self.assertEqual(task.priority, "A")
+        self.assertNotIn("pri", task.metadata)
+        self.assertIn("(A)", str(task))
+        
+        # Complete the task (which should store priority in metadata)
+        task.complete()
+        
+        # Verify the completed task has priority in metadata
+        self.assertIsNone(task.priority)
+        self.assertEqual(task.metadata["pri"], "A")
+        self.assertNotIn("(A)", str(task))
+        self.assertIn("pri:A", str(task))
+        
+        # Call recur() to create a new recurring task
+        new_task = task.recur()
+        
+        # Verify the new task is created
+        self.assertIsNotNone(new_task)
+        
+        # Verify the new task has priority in (A) format, not in metadata
+        self.assertEqual(new_task.priority, "A")
+        self.assertNotIn("pri", new_task.metadata)
+        self.assertIn("(A)", str(new_task))
+        self.assertNotIn("pri:A", str(new_task))
+
 
 class TestSerialization(unittest.TestCase):
     def test_serialize_simple_task(self) -> None:

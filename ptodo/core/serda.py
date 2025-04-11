@@ -65,13 +65,22 @@ class Task:
         while next_due_date <= datetime.date.today():
             next_due_date += datetime.timedelta(days=recur_days)
         
+        # Determine the priority for the new task
+        # For completed tasks, priority is stored in metadata
+        new_priority = self.priority
+        if "pri" in self.metadata:
+            new_priority = self.metadata["pri"]
+        
         # Create a new metadata dictionary with the updated due date
+        # but without the 'pri' metadata from completed tasks
         updated_metadata = self.metadata.copy()
         updated_metadata["due"] = next_due_date.strftime("%Y-%m-%d")
+        if "pri" in updated_metadata:
+            del updated_metadata["pri"]
         
         return Task(
             completed=False,
-            priority=self.priority,
+            priority=new_priority,
             creation_date=datetime.date.today(),
             description=self.description,
             projects=self.projects.copy(),
