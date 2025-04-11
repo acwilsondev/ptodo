@@ -27,7 +27,7 @@ from .commands.task_commands import (
 )
 from .utils.deprecation import warn_deprecated_command
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 
 
 def main(args: Optional[List[str]] = None) -> int:
@@ -77,6 +77,11 @@ def main(args: Optional[List[str]] = None) -> int:
         "-t",
         type=int,
         help="Limit display to the top N tasks after filtering",
+    )
+    tasks_list_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Output in JSON format",
     )
 
     # Tasks add command
@@ -166,6 +171,11 @@ def main(args: Optional[List[str]] = None) -> int:
         "-t",
         type=int,
         help="Limit display to the top N tasks after filtering",
+    )
+    list_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Output in JSON format",
     )
 
     # Add command
