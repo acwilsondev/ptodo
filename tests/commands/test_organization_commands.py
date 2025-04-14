@@ -15,7 +15,7 @@ from ptodo.commands.organization_commands import (
     cmd_project_rm,
     cmd_projects,
 )
-from ptodo.serda import Task
+from ptodo.core.serda import Task
 
 
 class TestOrganizationCommands:

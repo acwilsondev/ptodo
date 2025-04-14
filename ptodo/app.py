@@ -24,6 +24,7 @@ from .commands.task_commands import (
     cmd_rm,
     cmd_show,
     cmd_sort,
+    cmd_stats,
 )
 from .utils.deprecation import warn_deprecated_command
 
@@ -54,7 +55,7 @@ def main(args: Optional[List[str]] = None) -> int:
     # Create tasks subparser with its own subcommands
     tasks_parser = subparsers.add_parser("tasks", help="Task operations")
     tasks_subparsers = tasks_parser.add_subparsers(
-        dest="task_command", help="Task command to run"
+        dest="task_command", help="Task command to run", required=True
     )
 
     # Add task subcommands
@@ -152,6 +153,8 @@ def main(args: Optional[List[str]] = None) -> int:
         help="Show tasks due within the specified number of days",
     )
 
+    # Tasks stats command
+    tasks_subparsers.add_parser("stats", help="Display statistics about tasks")
     # List command (backward compatibility)
     list_parser = subparsers.add_parser("list", help="List tasks")
     list_parser.add_argument(
@@ -334,6 +337,8 @@ def main(args: Optional[List[str]] = None) -> int:
             return int(cmd_edit(parsed_args))
         elif parsed_args.task_command == "due":
             return int(cmd_due(parsed_args))
+        elif parsed_args.task_command == "stats":
+            return int(cmd_stats(parsed_args))
         else:
             parser.print_help()
             return 1

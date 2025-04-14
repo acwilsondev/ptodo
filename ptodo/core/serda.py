@@ -47,11 +47,28 @@ class Task:
         parts.append(self.description)
         parts.extend(f"+{p}" for p in sorted(self.projects))
         parts.extend(f"@{c}" for c in sorted(self.contexts))
+        # Always use effort:X format (not @effort:X)
         if self.effort:
             parts.append(f"effort:{self.effort}")
         for k, v in sorted(self.metadata.items()):
-            parts.append(f"{k}:{v}")
+            if k != "effort":  # Skip effort in metadata
+                parts.append(f"{k}:{v}")
         return " ".join(parts)
+
+    def to_dict(self) -> dict:
+        """Convert Task to a dictionary representation."""
+        return {
+            "completed": self.completed,
+            "priority": self.priority,
+            "completion_date": self.completion_date.isoformat() if self.completion_date else None,
+            "creation_date": self.creation_date.isoformat() if self.creation_date else None,
+            "description": self.description,
+            "projects": list(sorted(self.projects)),
+            "contexts": list(sorted(self.contexts)),
+            "metadata": dict(sorted(self.metadata.items())),
+            "effort": self.effort,
+            "task_id": None  # Will be set by the list command
+        }
 
     def recur(self) -> "Task | None":
         """Create a recurring task."""
@@ -181,13 +198,17 @@ def parse_task(line: str) -> Task:
         # Parse projects
         if part.startswith("+") and len(part) > 1:
             task.projects.add(part[1:])
-        # Parse contexts
+        # Parse contexts and effort
         elif part.startswith("@") and len(part) > 1:
-            task.contexts.add(part[1:])
+            context = part[1:]
+            # Handle @effort:X format
+            if context.startswith("effort:"):
+                task.effort = context.split(":", 1)[1]
+            else:
+                task.contexts.add(context)
         # Parse metadata (key:value)
         elif ":" in part and part.index(":") > 0:
             key, value = part.split(":", 1)
-            # Handle effort as a dedicated field
             if key == "effort":
                 task.effort = value
             else:
@@ -196,6 +217,10 @@ def parse_task(line: str) -> Task:
             description_parts.append(part)
 
     task.description = " ".join(description_parts).strip()
+
+    # Remove any lingering effort from contexts if it was parsed as both
+    effort_contexts = {c for c in task.contexts if c.startswith("effort:")}
+    task.contexts -= effort_contexts
 
     return task
 

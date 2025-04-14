@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import datetime
+import json
 import os
 from operator import itemgetter
 
@@ -59,7 +60,10 @@ def cmd_list(args: argparse.Namespace) -> int:
 
     # Print tasks
     if not indexed_tasks:
-        print("No matching tasks found.")
+        if getattr(args, "json", False):
+            print(json.dumps({"tasks": [], "total_tasks": len(all_tasks)}))
+        else:
+            print("No matching tasks found.")
         return 0
 
     # Get any explicit top count from args
@@ -70,6 +74,22 @@ def cmd_list(args: argparse.Namespace) -> int:
     # Limit to top N tasks if count is specified
     if list_count is not None and list_count > 0:
         indexed_tasks = indexed_tasks[:list_count]
+
+    if getattr(args, "json", False):
+        # Convert tasks to JSON format
+        tasks_json = []
+        for idx, (original_idx, task) in enumerate(indexed_tasks, 0):
+            task_dict = task.to_dict()
+            task_dict["task_id"] = original_idx + 1
+            tasks_json.append(task_dict)
+        
+        output = {
+            "tasks": tasks_json,
+            "total_tasks": len(all_tasks),
+            "shown_tasks": len(indexed_tasks)
+        }
+        print(json.dumps(output, indent=2))
+        return 0
 
     for _, (original_idx, task) in enumerate(indexed_tasks, 0):
         _show_task(original_idx, task)
@@ -565,6 +585,106 @@ def cmd_due(args: argparse.Namespace) -> int:
                 )
                 print(f"{GREEN}Tasks due in: {future_str}{RESET}")
 
+        print("")
+
+
+
+def cmd_stats(args: argparse.Namespace) -> int:
+    """
+    Display statistics about tasks.
+
+    Args:
+        args: Command-line arguments
+    """
+    todo_file = get_todo_file_path()
+    git_service: GitService = GitService(todo_file.parent)
+    tasks: list[Task] = read_tasks(todo_file, git_service)
+
+    if not tasks:
+        print("No tasks found.")
+        return 0
+
+    # Calculate basic statistics
+    total_tasks = len(tasks)
+    completed_tasks = sum(1 for task in tasks if task.completed)
+    incomplete_tasks = total_tasks - completed_tasks
+
+    # Calculate tasks by priority
+    priorities = {}
+    for task in tasks:
+        if task.priority:
+            priorities[task.priority] = priorities.get(task.priority, 0) + 1
+
+    # Calculate tasks by project
+    projects = {}
+    for task in tasks:
+        for project in task.projects:
+            projects[project] = projects.get(project, 0) + 1
+
+    # Calculate tasks by context
+    contexts = {}
+    for task in tasks:
+        for context in task.contexts:
+            contexts[context] = contexts.get(context, 0) + 1
+
+    # Calculate tasks by effort level
+    efforts = {}
+    for task in tasks:
+        if task.effort:
+            efforts[task.effort] = efforts.get(task.effort, 0) + 1
+
+    # Calculate overdue tasks
+    today = datetime.date.today()
+    overdue_tasks = 0
+    for task in tasks:
+        if not task.completed and "due" in task.metadata:
+            due_date = parse_date(task.metadata["due"])
+            if due_date and due_date < today:
+                overdue_tasks += 1
+
+    # Display statistics
+    print(f"{BOLD}Task Statistics:{RESET}")
+    print("")
+
+    # Basic counts
+    print(f"{BOLD}Counts:{RESET}")
+    print(f"  Total tasks: {total_tasks}")
+    print(f"  {GREEN}Completed tasks: {completed_tasks}{RESET}")
+    print(f"  {YELLOW}Incomplete tasks: {incomplete_tasks}{RESET}")
+    if overdue_tasks > 0:
+        print(f"  {RED}Overdue tasks: {overdue_tasks}{RESET}")
+    print("")
+
+    # Tasks by priority
+    if priorities:
+        print(f"{BOLD}Tasks by priority:{RESET}")
+        for priority in sorted(priorities.keys()):
+            count = priorities[priority]
+            print(f"  {YELLOW}({priority}){RESET}: {count}")
+        print("")
+
+    # Tasks by project
+    if projects:
+        print(f"{BOLD}Tasks by project:{RESET}")
+        for project in sorted(projects.keys()):
+            count = projects[project]
+            print(f"  {BLUE}+{project}{RESET}: {count}")
+        print("")
+
+    # Tasks by context
+    if contexts:
+        print(f"{BOLD}Tasks by context:{RESET}")
+        for context in sorted(contexts.keys()):
+            count = contexts[context]
+            print(f"  {CYAN}@{context}{RESET}: {count}")
+        print("")
+
+    # Tasks by effort
+    if efforts:
+        print(f"{BOLD}Tasks by effort:{RESET}")
+        for effort in sorted(efforts.keys()):
+            count = efforts[effort]
+            print(f"  Effort {effort}: {count}")
         print("")
 
     return 0
