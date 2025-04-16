@@ -587,6 +587,7 @@ def cmd_due(args: argparse.Namespace) -> int:
 
         print("")
 
+    return 0
 
 
 def cmd_stats(args: argparse.Namespace) -> int:
