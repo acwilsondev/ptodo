@@ -77,9 +77,11 @@ class Task:
         due_date = parse_date(self.metadata["due"])
         # We know due_date is not None because validate_recurrence checks it
         assert due_date is not None, "Due date should be valid at this point"
+        
         recur_days = int(self.metadata["recur"])
         next_due_date = due_date + datetime.timedelta(days=recur_days)
-        while next_due_date <= datetime.date.today():
+
+        while next_due_date <= datetime.date.today() or next_due_date <= due_date:
             next_due_date += datetime.timedelta(days=recur_days)
         
         # Determine the priority for the new task

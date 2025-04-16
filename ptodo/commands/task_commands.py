@@ -221,7 +221,7 @@ def cmd_done(args: argparse.Namespace) -> int:
 
     for task_id in args.task_ids:
         if 1 <= task_id <= len(tasks):
-            task = tasks[task_id - 1]
+            task: Task = tasks[task_id - 1]
             task.complete()
             completed_tasks.append(task)
             if not hasattr(args, "quiet") or not args.quiet:
@@ -528,7 +528,6 @@ def cmd_due(args: argparse.Namespace) -> int:
     # Sort by due date (oldest first)
     due_tasks.sort(key=itemgetter(2))
 
-    # Print tasks
     # Print tasks
     if not due_tasks:
         if future_date is not None:
