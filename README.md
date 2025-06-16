@@ -193,10 +193,10 @@ Available configuration options include:
 |--------|-------------|---------|
 | `default_priority` | Default priority for new tasks | None |
 | `date_format` | Format for displaying dates | %Y-%m-%d |
-| `auto_archive` | Automatically archive completed tasks | false |
+| `archive_completed` | Automatically archive completed tasks | false |
 | `editor` | Editor to use when editing tasks | $EDITOR or vi |
-| `git_auto_commit` | Automatically commit changes | false |
-| `git_auto_push` | Automatically push after commit | false |
+| `auto_commit` | Automatically commit changes | false |
+| `auto_sync` | Automatically push after commit | false |
 
 ## Git Integration
 
@@ -255,8 +255,8 @@ ptodo edit 5
 ptodo tasks edit 5
 
 # Configure Git auto-sync
-ptodo config set git_auto_commit true
-ptodo config set git_auto_push true
+ptodo config set auto_commit true
+ptodo config set auto_sync true
 ```
 
 ## Contributing

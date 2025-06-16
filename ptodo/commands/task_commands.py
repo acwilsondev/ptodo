@@ -13,8 +13,8 @@ from ..core import (
     sort_tasks,
     write_tasks,
 )
-from ..git_service import GitService
 from ..core.serda import Task, create_task, parse_date, parse_task
+from ..git_service import GitService
 
 # ANSI color codes for formatting
 RESET = "\033[0m"
@@ -82,11 +82,11 @@ def cmd_list(args: argparse.Namespace) -> int:
             task_dict = task.to_dict()
             task_dict["task_id"] = original_idx + 1
             tasks_json.append(task_dict)
-        
+
         output = {
             "tasks": tasks_json,
             "total_tasks": len(all_tasks),
-            "shown_tasks": len(indexed_tasks)
+            "shown_tasks": len(indexed_tasks),
         }
         print(json.dumps(output, indent=2))
         return 0
@@ -241,7 +241,10 @@ def cmd_done(args: argparse.Namespace) -> int:
                 print(f"Archiving: {len(completed_tasks)} task(s)")
             done_file = get_done_file_path()
             incomplete_tasks = [t for t in tasks if not t.completed]
-            write_tasks(completed_tasks, done_file, git_service)
+            # Append to existing done.txt instead of overwriting
+            existing_done = read_tasks(done_file, git_service)
+            existing_done.extend(completed_tasks)
+            write_tasks(existing_done, done_file, git_service)
             write_tasks(incomplete_tasks, todo_file, git_service)
         else:
             write_tasks(tasks, todo_file, git_service)

@@ -11,7 +11,7 @@ T = TypeVar("T")
 DEFAULT_CONFIG: Dict[str, Union[str, bool, Optional[int]]] = {
     "todo_file": "todo.txt",
     "done_file": "done.txt",
-    "archive_completed": True,
+    "archive_completed": False,
     "default_priority": "C",
     "show_colors": True,
     "date_format": "%Y-%m-%d",
